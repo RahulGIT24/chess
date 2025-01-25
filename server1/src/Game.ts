@@ -9,24 +9,34 @@ export class Game {
     private startTime: Date
     private moveCount: number
 
-    constructor(player1: WebSocket, player2: WebSocket) {
-        this.player1 = player1
-        this.player2 = player2
+    constructor(player1: {socket:WebSocket,name:string}, player2: {socket:WebSocket,name:string}) {
+        this.player1 = player1.socket
+        this.player2 = player2.socket
         this.board = new Chess()
         this.moveCount=0;
         this.startTime = new Date()
         this.player1.send(JSON.stringify({
             type:INIT_GAME,
             payload:{
+                name:player2.name,
                 color:"white"
             }
         }))
         this.player2.send(JSON.stringify({
             type:INIT_GAME,
             payload:{
+                name:player1.name,
                 color:"black"
             }
         }))
+        console.log({
+            name:player2.name,
+            color:"white"
+        })
+        console.log({
+            name:player1.name,
+            color:"black"
+        })
     }
 
     makeMove(socket: WebSocket, move: {
@@ -37,12 +47,12 @@ export class Game {
         // is it this users move
         // is the move valid
 
-        if(this.moveCount%2==0 && socket!==this.player1){
-            return;
-        }
-        if(this.moveCount%2==1 && socket!==this.player2){
-            return;
-        }
+        // if(this.moveCount%2==0 && socket!==this.player1){
+        //     return;
+        // }
+        // if(this.moveCount%2==1 && socket!==this.player2){
+        //     return;
+        // }
 
         try {
             this.board.move(move);
