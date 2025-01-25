@@ -1,6 +1,7 @@
 import { Chess } from "chess.js";
 import WebSocket from "ws";
-import { GAME_OVER, INIT_GAME, MOVE } from "./messages";
+import { ERROR, GAME_OVER, INIT_GAME, MOVE } from "./messages";
+import { moveValidator } from "./lib/validators";
 
 export class Game {
     public player1: WebSocket
@@ -42,24 +43,50 @@ export class Game {
     makeMove(socket: WebSocket, move: {
         from:string,to:string
     }) {
+        if(!moveValidator(move)){
+            socket.send(
+                JSON.stringify({
+                    type:ERROR,
+                    payload:{message:"Invalid Move Format"}
+                })
+            )
+            return;
+        }
         // validate the type of move using zod
         // validate move
         // is it this users move
         // is the move valid
 
-        // if(this.moveCount%2==0 && socket!==this.player1){
-        //     return;
-        // }
-        // if(this.moveCount%2==1 && socket!==this.player2){
-        //     return;
-        // }
+        if(this.moveCount%2==0 && socket!==this.player2){
+            socket.send(
+                JSON.stringify({
+                    type: ERROR,
+                    payload: { message: "It's not your turn" },
+                })
+            );
+            return;
+        }
+        if(this.moveCount%2==1 && socket!==this.player1){
+            socket.send(
+                JSON.stringify({
+                    type: ERROR,
+                    payload: { message: "It's not your turn" },
+                })
+            );
+            return;
+        }
 
+        // attempt for move
         try {
             this.board.move(move);
             this.moveCount++;
-            console.log(this.moveCount)
         } catch (error) {
-            console.log(error)
+            socket.send(
+                JSON.stringify({
+                    type: ERROR,
+                    payload: { message: "Illegal Move" },
+                })
+            );
             return;
         }
 
@@ -81,12 +108,12 @@ export class Game {
 
         // send the updated board to both players
         if(this.moveCount % 2 == 0){
-            this.player1.send(JSON.stringify({
+            this.player2.send(JSON.stringify({
                 type:MOVE,
                 payload:move
             }))
         }else{
-            this.player2.send(JSON.stringify({
+            this.player1.send(JSON.stringify({
                 type:MOVE,
                 payload:move
             }))

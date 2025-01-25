@@ -7,6 +7,7 @@ import { Chess } from "chess.js"
 export const INIT_GAME = "init_game"
 export const MOVE = "move"
 export const GAME_OVER = "game_over"
+export const ERROR = "error"
 
 const UserDetails = ({ name }: { name: string }) => {
     return (
@@ -53,7 +54,6 @@ const Game = () => {
                     const move = message.payload;
                     chess.move(move);
                     setBoard(chess.board())
-                    console.log("Move init")
                     break;
                 case GAME_OVER:
                     console.log("Game over")
@@ -74,11 +74,11 @@ const Game = () => {
                     <div className="grid grid-cols-6 gap-4 w-full">
                         <div className="col-span-4">
                             {
-                                opponentName && <UserDetails name={opponentName} /> 
+                                opponentName && <UserDetails name={opponentName} />
                             }
-                            <ChessBoard setBoard={setBoard} chess={chess} board={board} socket={socket} myColor={myColor}/>
+                            <ChessBoard setBoard={setBoard} chess={chess} board={board} socket={socket} myColor={myColor} />
                             {
-                                opponentName && <UserDetails name={name} /> 
+                                opponentName && <UserDetails name={name} />
                             }
                         </div>
                         {
