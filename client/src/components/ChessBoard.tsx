@@ -1,10 +1,11 @@
 import { Color, PieceSymbol, Square } from "chess.js";
-import { useEffect, useState } from "react";
-import { ERROR, MOVE } from "../screens/Game";
+import { SetStateAction, useEffect, useState } from "react";
+import { ERROR, MOVE, UserMoves } from "../screens/Game";
 import toast from "react-hot-toast";
 import { useSoundEffects } from "../hooks/useSoundEffects";
+import PromotionModal from "./PromotionModal";
 
-const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
+const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white',setMyMoves }: {
   board: ({
     square: Square;
     type: PieceSymbol;
@@ -12,13 +13,14 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
   } | null)[][]
   socket: WebSocket
   setBoard: any, chess: any,
-  myColor: string
+  myColor: string,
+  setMyMoves: any
 }) => {
   const [from, setFrom] = useState<Square | null>(null)
   const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null)
   const [to, setTo] = useState<Square | null>(null);
 
-  const {move:pieceMove,promote:piecePromote,error:errSound} = useSoundEffects();
+  const {castle, move: pieceMove, promote: piecePromote, error: errSound, capture } = useSoundEffects();
 
   const isMyPiece = (square: Square | null) => {
     const piece = board.flat().find((cell) => cell?.square === square);
@@ -54,7 +56,8 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
         }
       }
     }))
-    chess.move({ from: from, to: to, promotion: piece })
+    const moveRes = chess.move({ from: from, to: to, promotion: piece })
+    setMyMoves((prev:any)=>[{piece:moveRes.piece, place:to},...prev])
     setBoard(chess.board())
     piecePromote()
     setPromotion(null);
@@ -88,12 +91,21 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
               move: move
             }
           }))
-          chess.move({
+          const moveRes = chess.move({
             from: from,
             to: squareRepresentation,
           });
+          setMyMoves((prev:any)=>[{piece:moveRes.piece ,place:squareRepresentation},...prev])
           setBoard(chess.board())
-          pieceMove()
+
+          const destinationsq = board.flat().find((cell) => cell?.square === squareRepresentation)
+          const isCapture = destinationsq && destinationsq.color !== (myColor === "white" ? 'w' : 'b')
+
+          if (isCapture) {
+            capture();
+          }else {
+            pieceMove()
+          }
           setFrom(null);
           setTo(null);
         }
@@ -103,7 +115,6 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
         return;
       }
     }
-
   }
 
   return (
@@ -113,7 +124,7 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
           {
             row.map((square, j) => {
               const squareRepresentation = String.fromCharCode(97 + (j % 8)) + "" + (8 - i) as Square
-              return <div key={j} className={`w-[6.4rem]  flex justify-center items-center h-[10vh] ${(i + j) % 2 === 0 ? 'bg-zinc-500' : 'bg-green-500'}`}
+              return <div key={j} className={`w-[6.4rem]  flex justify-center items-center h-[9vh] ${(i + j) % 2 === 0 ? 'bg-zinc-500' : 'bg-green-500'}`}
                 onClick={() => {
                   handlePieceMove(squareRepresentation)
                 }}
@@ -127,22 +138,7 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
         </div>
       })}
       {promotion && (
-        <div className={`absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center ${myColor === 'black' ? "rotate-180" : ""}`}>
-          <div className="bg-white p-4 rounded-lg">
-            <p className="mb-2">Choose promotion piece:</p>
-            <div className="flex space-x-2">
-              {['q', 'r', 'b', 'n'].map((piece) => (
-                <button
-                  key={piece}
-                  className={`p-2 border rounded ${myColor === "black" ? "bg-white" : "bg-black"}`}
-                  onClick={() => handlePromotion(piece as PieceSymbol)}
-                >
-                  <img src={`/${myColor === "black" ? piece : piece.toUpperCase() + " copy"}.png`} alt="" className="w-8 h-9" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <PromotionModal myColor={myColor} handlePromotion={handlePromotion}/>
       )}
     </div>
   );

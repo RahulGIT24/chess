@@ -1,4 +1,5 @@
 import {z} from 'zod'
+import { Move } from '../types/types';
 
 const moveSchema = z.object({
     from:z.string().length(2),
