@@ -4,7 +4,7 @@ import { INIT_GAME, MOVE } from "./messages";
 
 export class GameManager{
     private games:Game[]
-    private pendingUser: {socket:WebSocket,name:string} | null
+    private pendingUser: {socket:WebSocket,name:string,timeLeft:number} | null
     private users: WebSocket[]
 
     constructor(){
@@ -28,12 +28,15 @@ export class GameManager{
             const username = message.name;
             
             if(message.type===INIT_GAME){
+                console.log("message",message)
                 if(this.pendingUser){
-                    const game = new Game(this.pendingUser,{socket,name:username})
-                    this.games.push(game);
+                   // const game = new Game(this.pendingUser,{socket,name:username,timeLeft:0}, message.time)
+                   const game = new Game(this.pendingUser,{socket,name:username,timeLeft:0}, message.time)
+                    
+                   this.games.push(game);
                     this.pendingUser = null;
                 }else{
-                    this.pendingUser = {socket,name:username}
+                    this.pendingUser = {socket,name:username,timeLeft:0} //phatega yaha
                 }
             }
 

@@ -35,7 +35,8 @@ const SideMenu = ({ waiting, setName, started, name, setWaiting, socket }: SideM
             {!started && <Button disabled={name && name.length > 3 ? false : true} classname={`w-64 mt-4 font-bold ${name.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105'} `} onClick={() => {
                 socket.send(JSON.stringify({
                     type: INIT_GAME,
-                    name: name
+                    name: name,
+                    time:time
                 }))
                 setWaiting(true)
             }}>Play</Button>}
