@@ -1,4 +1,4 @@
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
 import { ERROR, GAME_OVER, INIT_GAME, MOVE } from "./messages";
 import { moveValidator } from "./lib/validators";
@@ -41,8 +41,9 @@ export class Game {
     }
 
     makeMove(socket: WebSocket, move: {
-        from:string,to:string
+        from:string,to:string,promotion?:string
     }) {
+        console.log(move)
         if(!moveValidator(move)){
             socket.send(
                 JSON.stringify({
@@ -78,7 +79,21 @@ export class Game {
 
         // attempt for move
         try {
-            this.board.move(move);
+            const piece = this.board.get(move.from as Square)?.type;
+            if(piece==="p" && (move.to.endsWith("8") || move.to.endsWith("1"))){
+                if (!move.promotion || !["q", "r", "b", "n"].includes(move.promotion)) {
+                    socket.send(
+                        JSON.stringify({
+                            type: ERROR,
+                            payload: { message: "Invalid promotion piece" },
+                        })
+                    );
+                    return;
+                }
+                this.board.move(move);
+            }else{
+                this.board.move(move);
+            }
             this.moveCount++;
         } catch (error) {
             socket.send(
@@ -103,7 +118,6 @@ export class Game {
                     winner:this.board.turn() === "w" ? "black":"white"
                 }
             }))
-            return;
         }
 
         // send the updated board to both players

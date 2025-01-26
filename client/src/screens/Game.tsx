@@ -11,8 +11,8 @@ export const ERROR = "error"
 
 const UserDetails = ({ name }: { name: string }) => {
     return (
-        <div className="flex flex-row items-center gap-x-5 py-4 w-full">
-            <img src="/user.png" alt="" className="w-12 h-w-12 bg-white rounded-full" />
+        <div className="flex flex-row items-center gap-x-5 w-full bg-zinc-700 text-white p-2">
+            <img src="/user.png" alt="" className="w-12 h-12 bg-white rounded-full border border-white" />
             <p className="font-serif font-semibold text-xl">{name}</p>
         </div>
     )
@@ -71,19 +71,15 @@ const Game = () => {
         <div className="h-screen w-full bg-zinc-800 text-white">
             <div className="justify-center flex">
                 <div className="pt-8 w-full flex justify-center items-center">
-                    <div className="grid grid-cols-6 gap-4 w-full">
-                        <div className="col-span-4">
-                            {
-                                opponentName && <UserDetails name={opponentName} />
-                            }
+                    <div className="flex justify-center items-center w-full">
+                        <div className="flex justify-center items-start flex-col px-12">
+                            <UserDetails name={opponentName ? opponentName : "Opponent"} />
                             <ChessBoard setBoard={setBoard} chess={chess} board={board} socket={socket} myColor={myColor} />
-                            {
-                                opponentName && <UserDetails name={name} />
-                            }
+                            <UserDetails name={name ? name : "Your Name"} />
                         </div>
                         {
                             waiting === null &&
-                            <div className="col-span-2 w-full flex justify-center items-center flex-col gap-y-3">
+                            <div className="w-full flex justify-center items-center flex-col gap-y-3">
                                 <div className="flex flex-col gap-y-2">
                                     <p className="text-xl font-sans font-semibold">Enter Your Name</p>
                                     <input type="text" className="text-white py-1.5 px-2 rounded-md bg-transparent outline-none border border-white" onChange={(e) => setName(e.target.value)} />
@@ -99,7 +95,7 @@ const Game = () => {
                         }
                         {
                             waiting &&
-                            <div className="col-span-2 w-full flex justify-center items-center flex-col gap-y-5">
+                            <div className="w-full flex justify-center items-center flex-col gap-y-5">
                                 <img src="/waiting.gif" alt="waiting" />
                                 <p className="font-bold text-2xl">Finding Players......</p>
                             </div>
