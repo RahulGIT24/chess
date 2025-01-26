@@ -2,6 +2,7 @@ import { Color, PieceSymbol, Square } from "chess.js";
 import { useEffect, useState } from "react";
 import { ERROR, MOVE } from "../screens/Game";
 import toast from "react-hot-toast";
+import { useSoundEffects } from "../hooks/useSoundEffects";
 
 const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
   board: ({
@@ -15,7 +16,9 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
 }) => {
   const [from, setFrom] = useState<Square | null>(null)
   const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null)
-  const [to,setTo] = useState<Square|null>(null);
+  const [to, setTo] = useState<Square | null>(null);
+
+  const {move:pieceMove,promote:piecePromote,error:errSound} = useSoundEffects();
 
   const isMyPiece = (square: Square | null) => {
     const piece = board.flat().find((cell) => cell?.square === square);
@@ -25,9 +28,9 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data)
-      console.log(data);
       if (data.type === ERROR) {
         const message = data.payload.message;
+        errSound();
         toast.error(message ?? "Server Error")
       }
     };
@@ -41,8 +44,6 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
 
   const handlePromotion = (piece: PieceSymbol) => {
     if (!promotion) return;
-    console.log('From',from)
-    console.log('to',to)
     socket.send(JSON.stringify({
       type: MOVE,
       payload: {
@@ -55,9 +56,54 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
     }))
     chess.move({ from: from, to: to, promotion: piece })
     setBoard(chess.board())
+    piecePromote()
     setPromotion(null);
     setFrom(null);
     setTo(null);
+  }
+
+  const handlePieceMove = (squareRepresentation: Square) => {
+    if (promotion) return;
+    if (!from) {
+      if (isMyPiece(squareRepresentation)) {
+        setFrom(squareRepresentation);
+        // console.log('From',squareRepresentation);
+      } else {
+        return;
+      }
+    } else {
+      setTo(squareRepresentation)
+      // console.log('To',squareRepresentation);
+      const move = {
+        from, to: squareRepresentation
+      }
+
+      try {
+        if (chess.get(from)?.type === 'p' && (squareRepresentation[1] === '8' || squareRepresentation[1] === '1')) {
+          setPromotion(move);
+        } else {
+          socket.send(JSON.stringify({
+            type: MOVE,
+            payload: {
+              move: move
+            }
+          }))
+          chess.move({
+            from: from,
+            to: squareRepresentation,
+          });
+          setBoard(chess.board())
+          pieceMove()
+          setFrom(null);
+          setTo(null);
+        }
+      } catch (error) {
+        setFrom(null);
+        setTo(null);
+        return;
+      }
+    }
+
   }
 
   return (
@@ -69,46 +115,7 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
               const squareRepresentation = String.fromCharCode(97 + (j % 8)) + "" + (8 - i) as Square
               return <div key={j} className={`w-[6.4rem]  flex justify-center items-center h-[10vh] ${(i + j) % 2 === 0 ? 'bg-zinc-500' : 'bg-green-500'}`}
                 onClick={() => {
-                  if (promotion) return;
-                  if (!from) {
-                    if (isMyPiece(squareRepresentation)) {
-                      setFrom(squareRepresentation);
-                      // console.log('From',squareRepresentation);
-                    } else {
-                      return;
-                    }
-                  } else {
-                    setTo(squareRepresentation)
-                    // console.log('To',squareRepresentation);
-                    const move = {
-                      from, to: squareRepresentation
-                    }
-
-                    try {
-                      if (chess.get(from)?.type === 'p' && (squareRepresentation[1] === '8' || squareRepresentation[1] === '1')) {
-                        setPromotion(move);
-                      } else {
-                        socket.send(JSON.stringify({
-                          type: MOVE,
-                          payload: {
-                            move: move
-                          }
-                        }))
-                        chess.move({
-                          from: from,
-                          to: squareRepresentation,
-                        });
-                        setBoard(chess.board())
-                        setFrom(null);
-                        setTo(null);
-                      }
-                    } catch (error) {
-                      setFrom(null);
-                      setTo(null);
-                      console.log(error);
-                      return;
-                    }
-                  }
+                  handlePieceMove(squareRepresentation)
                 }}
               >
                 <p className={`text-center ${myColor === 'black' ? 'rotate-180' : ''}`}>
@@ -127,10 +134,10 @@ const ChessBoard = ({ board, socket, setBoard, chess, myColor = 'white' }: {
               {['q', 'r', 'b', 'n'].map((piece) => (
                 <button
                   key={piece}
-                  className="p-2 border rounded"
+                  className={`p-2 border rounded ${myColor === "black" ? "bg-white" : "bg-black"}`}
                   onClick={() => handlePromotion(piece as PieceSymbol)}
                 >
-                  {piece.toUpperCase()}
+                  <img src={`/${myColor === "black" ? piece : piece.toUpperCase() + " copy"}.png`} alt="" className="w-8 h-9" />
                 </button>
               ))}
             </div>

@@ -3,6 +3,7 @@ import Button from "../components/Button"
 import ChessBoard from "../components/ChessBoard"
 import { useSocket } from "../hooks/useSocket"
 import { Chess } from "chess.js"
+import { useSoundEffects } from "../hooks/useSoundEffects"
 
 export const INIT_GAME = "init_game"
 export const MOVE = "move"
@@ -26,8 +27,10 @@ const Game = () => {
     const [name, setName] = useState("");
     const [waiting, setWaiting] = useState<null | boolean>(null);
     const [opponentName, setOpponentName] = useState("");
-    const [opponentColor, setOpponentColor] = useState("");
+    // const [opponentColor, setOpponentColor] = useState("");
     const [myColor, setMyColor] = useState("")
+
+    const {gamestart,gameend} = useSoundEffects();
 
     useEffect(() => {
         if (!socket) return;
@@ -43,7 +46,8 @@ const Game = () => {
                     setBoard(chess.board())
                     setStarted(true);
                     setOpponentName(name)
-                    setOpponentColor(color);
+                    // setOpponentColor(color);
+                    gamestart();
                     if (color == "white") {
                         setMyColor("black")
                     } else {
@@ -56,7 +60,8 @@ const Game = () => {
                     setBoard(chess.board())
                     break;
                 case GAME_OVER:
-                    console.log("Game over")
+                    // console.log("Game over")
+                    gameend();
                     break;
 
                 default:

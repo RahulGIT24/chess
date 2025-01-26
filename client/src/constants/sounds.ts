@@ -1,0 +1,8 @@
+export const CAPTURE_SOUND = "/sounds/capture.mp3"
+export const CASTLE_SOUND = "/sounds/castle.mp3"
+export const GAME_END = "/sounds/game-end.webm"
+export const GAME_START = "/sounds/game-start.mp3"
+export const MOVE_SELF = "/sounds/move-self.mp3"
+export const PROMOTE = "/sounds/promote.mp3"
+export const TIME_ENDING = "/sounds/tenseconds.mp3"
+export const ILLEGAL = "/sounds/illegal.mp3"

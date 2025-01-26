@@ -30,20 +30,20 @@ export class Game {
                 color:"black"
             }
         }))
-        console.log({
-            name:player2.name,
-            color:"white"
-        })
-        console.log({
-            name:player1.name,
-            color:"black"
-        })
+        // console.log({
+        //     name:player2.name,
+        //     color:"white"
+        // })
+        // console.log({
+        //     name:player1.name,
+        //     color:"black"
+        // })
     }
 
     makeMove(socket: WebSocket, move: {
         from:string,to:string,promotion?:string
     }) {
-        console.log(move)
+        // console.log(move)
         if(!moveValidator(move)){
             socket.send(
                 JSON.stringify({
