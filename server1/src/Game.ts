@@ -64,17 +64,6 @@ export class Game {
         },
       })
     );
-     console.log({
-         name:player2.name,
-         color:"white",
-         timer:player1.timeLeft
-
-     })
-     console.log('adfghdxh',{
-         name:player1.name,
-         color:"blac",
-         timer:player2.timeLeft
-     })
   }
 
   makeMove(

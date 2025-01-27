@@ -50,9 +50,9 @@ const ChessBoard = ({
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       if (data.type === ERROR) {
-        const message = data.payload.message;
+        // const message = data.payload.message;
         errSound();
-        toast.error(message ?? "Server Error");
+        // toast.error(message ?? "Server Error");
       }
     };
 
@@ -65,6 +65,12 @@ const ChessBoard = ({
 
   const handlePromotion = (piece: PieceSymbol) => {
     if (!promotion) return;
+    const moveRes = chess.move({ from: from, to: to, promotion: piece });
+
+    // if(!moveRes){
+    //   chess.undo()
+    // }
+
     socket.send(
       JSON.stringify({
         type: MOVE,
@@ -77,7 +83,6 @@ const ChessBoard = ({
         },
       })
     );
-    const moveRes = chess.move({ from: from, to: to, promotion: piece });
     setMyMoves((prev: any) => [{ piece: moveRes.piece, place: to }, ...prev]);
     setBoard(chess.board());
     piecePromote();
@@ -87,7 +92,8 @@ const ChessBoard = ({
   };
 
   const handlePieceMove = (squareRepresentation: Square) => {
-    if (promotion) return;
+    if (promotion) return; // If promotion modal is open, don't handle regular move
+
     if (!from) {
       if (isMyPiece(squareRepresentation)) {
         setFrom(squareRepresentation);
@@ -104,12 +110,17 @@ const ChessBoard = ({
       };
 
       try {
-        if (
-          chess.get(from)?.type === "p" &&
-          (squareRepresentation[1] === "8" || squareRepresentation[1] === "1")
-        ) {
+        // Check if the move is a promotion (pawn reaching last rank)
+        const piece = chess.get(from);
+        const isPawn = piece?.type === "p";
+        const isLastRank =
+          squareRepresentation[1] === (myColor === "white" ? "8" : "1");
+
+        if (isPawn && isLastRank) {
+          // If it's a pawn and reaches the last rank, set promotion
           setPromotion(move);
         } else {
+          // Regular move logic
           setMyTurn(false);
           socket.send(
             JSON.stringify({

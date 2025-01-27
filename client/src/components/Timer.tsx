@@ -1,33 +1,31 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-export default function Timer({ 
+export default function Timer({
   time,
   setTime,
-  myTurn
+  color,
+  currentTurn,
 }: {
   time: number;
-  setTime: any;
-  myTurn:boolean
+  setTime: (update: (prev: number) => number) => void;
+  color: string;
+  currentTurn: string | null;
 }) {
-  console.log(time);
   useEffect(() => {
+    // Run timer only if the current player's color matches the turn
+    if (time === 0 || color !== currentTurn) return;
+
     const interval = setInterval(() => {
-      console.log("here");
-      if (time === 0) return;
-      if(myTurn)
-      return setTime((prev: number) => prev - 1);
+      setTime((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+
+    return () => clearInterval(interval); // Clear interval when unmounting or dependencies change
+  }, [time, color, currentTurn, setTime]);
 
   return (
-    <>
-      <div className=" text-black bg-white w-32 p-2 z-10 rounded-md right-[10%] top-[0%]">
-        {" "}
-        {Math.floor(time / 60) || "00"}:{time % 60 || "00"}
-      </div>
-    </>
+    <div className="text-black bg-white w-32 p-2 z-10 rounded-md right-[10%] top-[0%]">
+      {Math.floor(time / 60).toString().padStart(2, "0")}:
+      {(time % 60).toString().padStart(2, "0")}
+    </div>
   );
 }

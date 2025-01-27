@@ -6,6 +6,7 @@ import { useSoundEffects } from "../hooks/useSoundEffects";
 import SideMenu from "../components/SideMenu";
 import UserDetails from "../components/UserDetails";
 import UserMovesSection from "../components/UserMovesSection";
+import WinnerModal from "../components/WinnerModal";
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
@@ -27,11 +28,18 @@ const Game = () => {
   const [opponentName, setOpponentName] = useState("");
   const [time, setTime] = useState<number>(0);
   const [myTurn, setMyturn] = useState<boolean>(false);
+  const [currentTurn, setCurrentTurn] = useState<null | string>(null)
 
   // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
   const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
+  const [winner, setWinner] = useState<null | string>(null)
+  const [winnerModal, setWinnerModal] = useState<boolean>(false);
+
+  const closeWinnerModal = () => {
+    setWinnerModal(false);
+  }
 
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
   useEffect(() => {
@@ -42,7 +50,6 @@ const Game = () => {
 
       switch (message.type) {
         case INIT_GAME:
-          console.log(message);
           const name = message.payload.name;
           const color = message.payload.color;
           const timer = message.payload.timer;
@@ -54,8 +61,10 @@ const Game = () => {
           // setOpponentColor(color);
           gamestart();
           if (color == "white") {
+            console.log("black")
             setMyColor("black");
           } else {
+            console.log("white")
             setMyturn(true);
             setMyColor("white");
           }
@@ -73,7 +82,11 @@ const Game = () => {
           setBoard(chess.board());
           break;
         case GAME_OVER:
-          // console.log("Game over")
+          const winner = message.payload.winner;
+          console.log("My Color ",myColor)
+          setWinner(winner)
+          setWinnerModal(true)
+          setWinnerModal(true)
           gameend();
           break;
 
@@ -83,9 +96,17 @@ const Game = () => {
     };
   }, [socket]);
 
+  useEffect(() => {
+    setCurrentTurn(chess.turn())
+  }, [chess])
+
   if (!socket) return <div>Connecting......</div>;
   return (
     <div className="h-screen w-full bg-zinc-800 text-white">
+      {
+        winner && winnerModal &&
+        <WinnerModal winner={winner as string} closeModal={closeWinnerModal} />
+      }
       <div className="justify-center flex">
         <div className="pt-8 w-full flex justify-center items-center">
           <div className="flex justify-center items-center w-full h-[95vh]">
@@ -94,7 +115,7 @@ const Game = () => {
                 moves={opponentMoves}
                 color={myColor === "black" ? "white" : "black"}
               />
-              <UserDetails name={opponentName ? opponentName : "Opponent"}  time={time} setTime ={setTime} myTurn ={!myTurn}/>
+              <UserDetails name={opponentName ? opponentName : "Opponent"} time={time} setTime={setTime} color={myColor === "white" ? "b" : "w"} currentTurn={currentTurn} />
               <ChessBoard
                 setBoard={setBoard}
                 chess={chess}
@@ -104,7 +125,7 @@ const Game = () => {
                 setMyMoves={setMyMoves}
                 setMyTurn={setMyturn}
               />
-              <UserDetails name={name ? name : "Your Name"} time={time} setTime ={setTime} myTurn ={myTurn}/>
+              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu
