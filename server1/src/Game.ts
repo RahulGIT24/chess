@@ -1,6 +1,6 @@
 import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
-import { ERROR, GAME_OVER, INIT_GAME, MOVE } from "./messages";
+import { ERROR, GAME_OVER, INIT_GAME, MOVE, RESIGN } from "./messages";
 import { moveValidator } from "./lib/validators";
 
 export class Game {
@@ -36,19 +36,15 @@ export class Game {
         break;
     }
 
-
-
     player1.timeLeft = this.timer;
     player2.timeLeft = this.timer;
-
-
 
     this.player1.send(
       JSON.stringify({
         type: INIT_GAME,
         payload: {
           name: player2.name,
-          timer:player1.timeLeft,
+          timer: player1.timeLeft,
           color: "white",
         },
       })
@@ -59,8 +55,20 @@ export class Game {
         type: INIT_GAME,
         payload: {
           name: player1.name,
-          timer:player2.timeLeft,
+          timer: player2.timeLeft,
           color: "black",
+        },
+      })
+    );
+  }
+
+  onResign(socket: WebSocket) {
+    console.log("resing")
+    socket.send(
+      JSON.stringify({
+        type: RESIGN,
+        payload: {
+          message: "Opponent resigned",
         },
       })
     );

@@ -13,10 +13,12 @@ export default function Timer({
 }) {
   useEffect(() => {
     // Run timer only if the current player's color matches the turn
-    if (time === 0 || color !== currentTurn) return;
+    if (time===0||color!==currentTurn) {
+      return;
+    }
 
     const interval = setInterval(() => {
-      setTime((prev) => (prev > 0 ? prev - 1 : 0));
+        setTime((prev) => (prev > 0 && color === currentTurn ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(interval); // Clear interval when unmounting or dependencies change
@@ -24,8 +26,10 @@ export default function Timer({
 
   return (
     <div className="text-black bg-white w-32 p-2 z-10 rounded-md right-[10%] top-[0%]">
-      {Math.floor(time / 60).toString().padStart(2, "0")}:
-      {(time % 60).toString().padStart(2, "0")}
+      {Math.floor(time / 60)
+        .toString()
+        .padStart(2, "0")}
+      :{(time % 60).toString().padStart(2, "0")}
     </div>
   );
 }

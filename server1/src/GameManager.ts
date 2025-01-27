@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { INIT_GAME, MOVE } from "./messages";
+import { INIT_GAME, MOVE,RESIGN } from "./messages";
 
 export class GameManager{
     private games:Game[]
@@ -28,7 +28,7 @@ export class GameManager{
             const username = message.name;
             
             if(message.type===INIT_GAME){
-                console.log("message",message)
+                console.log("message",message)      
                 if(this.pendingUser){
                    // const game = new Game(this.pendingUser,{socket,name:username,timeLeft:0}, message.time)
                    const game = new Game(this.pendingUser,{socket,name:username,timeLeft:0}, message.time)
@@ -39,7 +39,12 @@ export class GameManager{
                     this.pendingUser = {socket,name:username,timeLeft:0} //phatega yaha
                 }
             }
-
+            if(message.type===RESIGN){
+                const game = this.games.find(game=>game.player1===socket || game.player2===socket)
+                if(game){
+                    game.onResign(socket)
+                }
+            }
             
             if(message.type===MOVE){
                 const game = this.games.find(game=>game.player1===socket || game.player2===socket)
