@@ -9,7 +9,14 @@ import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Draw from "../components/Draw";
-import { DRAW, GAME_OVER, INIT_GAME, MOVE, OFFER_DRAW, RESIGN } from "../constants/messages";
+import {
+  DRAW,
+  GAME_OVER,
+  INIT_GAME,
+  MOVE,
+  OFFER_DRAW,
+  RESIGN,
+} from "../constants/messages";
 
 export interface UserMoves {
   piece: string;
@@ -26,47 +33,50 @@ const Game = () => {
   const [opponentName, setOpponentName] = useState("");
   const [time, setTime] = useState<number>(0);
   const [myTurn, setMyturn] = useState<boolean>(false);
-  const [currentTurn, setCurrentTurn] = useState<null | string>(null)
+  const [currentTurn, setCurrentTurn] = useState<null | string>(null);
 
   const [resignModal, setResignModal] = useState<boolean>(false);
-  const [resignedColor, setResignedColor] = useState("")
-  const [draw,setDraw] = useState(false);
+  const [resignedColor, setResignedColor] = useState("");
+  const [draw, setDraw] = useState(false);
 
   // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
   const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
-  const [winner, setWinner] = useState<null | string>(null)
+  const [winner, setWinner] = useState<null | string>(null);
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
-  const [gameLocked,setGameLocked] = useState(false);
+  const [gameLocked, setGameLocked] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
-  }
+  };
 
   const onResign = () => {
     setResignModal(true);
-  }
+  };
 
   const onResignConfirm = (arg: boolean) => {
     if (arg) {
-      socket?.send(JSON.stringify({
-        "type": RESIGN,
-        payload: {
-          color: myColor
-        }
-      }))
+      socket?.send(
+        JSON.stringify({
+          type: RESIGN,
+          payload: {
+            color: myColor,
+          },
+        })
+      );
     }
     setResignModal(false);
-  }
+  };
 
-  const offerDraw = ()=>{
-    if(!socket) return;
-    socket.send(JSON.stringify({
-      type:OFFER_DRAW
-    }))
-  }
-
+  const offerDraw = () => {
+    if (!socket) return;
+    socket.send(
+      JSON.stringify({
+        type: OFFER_DRAW,
+      })
+    );
+  };
 
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
   useEffect(() => {
@@ -90,7 +100,7 @@ const Game = () => {
           if (color == "white") {
             setMyColor("black");
           } else {
-            console.log("white")
+            console.log("white");
             setMyturn(true);
             setMyColor("white");
           }
@@ -110,8 +120,8 @@ const Game = () => {
 
         case GAME_OVER:
           const winner = message.payload.winner;
-          setWinner(winner)
-          setWinnerModal(true)
+          setWinner(winner);
+          setWinnerModal(true);
           setGameLocked(true);
           gameend();
           break;
@@ -119,7 +129,7 @@ const Game = () => {
         case RESIGN:
           setResignedColor(message.payload.color);
           // setWinner(message.payload.color === "white" ? "black" : "white");
-          setWinnerModal(true)
+          setWinnerModal(true);
           setGameLocked(true);
           break;
         case DRAW:
@@ -134,24 +144,29 @@ const Game = () => {
   }, [socket]);
 
   useEffect(() => {
-    setCurrentTurn(chess.turn())
-  }, [chess])
+    setCurrentTurn(chess.turn());
+  }, [chess,time]);
 
   if (!socket) return <div>Connecting......</div>;
   return (
     <div className="h-screen w-full bg-zinc-800 text-white">
-      {
-        ((winner && winnerModal ) || (winnerModal && resignedColor)) && 
-        <WinnerModal winner={winner as string} closeModal={closeWinnerModal} myColor={myColor} name={name} opponentName={opponentName} resignedColor={resignedColor as string}/>
-      }
-      {
-        draw &&
-        <Draw/>
-      }
-      {
-        resignModal &&
-        <ConfirmationModal text="Do You want to Resign?" func={onResignConfirm} />
-      }
+      {((winner && winnerModal) || (winnerModal && resignedColor)) && (
+        <WinnerModal
+          winner={winner as string}
+          closeModal={closeWinnerModal}
+          myColor={myColor}
+          name={name}
+          opponentName={opponentName}
+          resignedColor={resignedColor as string}
+        />
+      )}
+      {draw && <Draw />}
+      {resignModal && (
+        <ConfirmationModal
+          text="Do You want to Resign?"
+          func={onResignConfirm}
+        />
+      )}
       <div className="justify-center flex">
         <div className="pt-8 w-full flex justify-center items-center">
           <div className="flex justify-center items-center w-full h-[95vh]">
@@ -160,7 +175,14 @@ const Game = () => {
                 moves={opponentMoves}
                 color={myColor === "black" ? "white" : "black"}
               />
-              <UserDetails name={opponentName ? opponentName : "Opponent"} time={time} setTime={setTime} color={myColor === "white" ? "b" : "w"} currentTurn={currentTurn} />
+              <UserDetails
+                name={opponentName ? opponentName : "Opponent"}
+                time={time}
+                setTime={setTime}
+                color={myColor === "white" ? "b" : "w"}
+                currentTurn={currentTurn}
+                myTurn ={!myTurn}
+              />
               <ChessBoard
                 gamelocked={gameLocked}
                 setBoard={setBoard}
@@ -171,7 +193,17 @@ const Game = () => {
                 setMyMoves={setMyMoves}
                 setMyTurn={setMyturn}
               />
-              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} onResign={opponentName ? onResign : null} offerDraw={opponentName ? offerDraw : null}/>
+              <UserDetails
+                name={name ? name : "Your Name"}
+                time={time}
+                setTime={setTime}
+                color={myColor === "white" ? "w" : "b"}
+                currentTurn={currentTurn}
+                onResign={opponentName ? onResign : null}
+                offerDraw={opponentName ? offerDraw : null}
+                myTurn ={myTurn}
+
+              />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu

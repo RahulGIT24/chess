@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { INIT_GAME } from "../screens/Game"
+import { INIT_GAME } from "../constants/messages"
 import Button from "./Button"
 import DropDown from "./DropDown"
 
