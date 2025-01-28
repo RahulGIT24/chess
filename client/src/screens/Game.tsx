@@ -15,7 +15,7 @@ export const MOVE = "move";
 export const GAME_OVER = "game_over";
 export const ERROR = "error";
 export const RESIGN = "resign"
-export const DRAW = "draw"
+export const DRAW = 'draw'
 
 export interface UserMoves {
   piece: string;
@@ -86,7 +86,6 @@ const Game = () => {
           // setOpponentColor(color);
           gamestart();
           if (color == "white") {
-            console.log("black")
             setMyColor("black");
           } else {
             console.log("white")
@@ -121,6 +120,10 @@ const Game = () => {
           setWinnerModal(true)
           setGameLocked(true);
           break;
+        case DRAW:
+          setDraw(true);
+          setGameLocked(true);
+          break;
 
         case DRAW:
           setDraw(true);
@@ -145,7 +148,8 @@ const Game = () => {
         <WinnerModal winner={winner as string} closeModal={closeWinnerModal} myColor={myColor} name={name} opponentName={opponentName} resignedColor={resignedColor as string}/>
       }
       {
-        draw && <Draw/>
+        draw &&
+        <Draw/>
       }
       {
         resignModal &&

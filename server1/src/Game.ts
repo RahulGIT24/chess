@@ -158,12 +158,12 @@ export class Game {
     if(this.board.isDraw()){
       this.player1.send(
         JSON.stringify({
-          type: DRAW
+          type:   DRAW,
         })
       );
       this.player2.send(
         JSON.stringify({
-          type: DRAW
+          type: DRAW,
         })
       );
     }
