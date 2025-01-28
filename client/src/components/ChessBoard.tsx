@@ -1,20 +1,10 @@
 import { Color, PieceSymbol, Square } from "chess.js";
-import { SetStateAction, useEffect, useState } from "react";
-import { ERROR, MOVE, UserMoves } from "../screens/Game";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { ERROR, GAME_OVER, MOVE, RESIGN } from "../screens/Game";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import PromotionModal from "./PromotionModal";
-import Timer from "./Timer";
 
-const ChessBoard = ({
-  board,
-  socket,
-  setBoard,
-  chess,
-  myColor = "white",
-  setMyMoves,
-  setMyTurn
-}: {
+type ChessBoardProps = {
   board: ({
     square: Square;
     type: PieceSymbol;
@@ -25,8 +15,20 @@ const ChessBoard = ({
   chess: any;
   myColor: string;
   setMyMoves: any;
-  setMyTurn:any
-}) => {
+  setMyTurn: any
+  gamelocked:boolean
+}
+
+const ChessBoard = ({
+  board,
+  socket,
+  setBoard,
+  chess,
+  myColor = "white",
+  setMyMoves,
+  gamelocked,
+  setMyTurn
+}: ChessBoardProps) => {
   const [from, setFrom] = useState<Square | null>(null);
   const [promotion, setPromotion] = useState<{
     from: Square;
@@ -64,12 +66,9 @@ const ChessBoard = ({
   }, [socket]);
 
   const handlePromotion = (piece: PieceSymbol) => {
+    if(gamelocked) return;
     if (!promotion) return;
     const moveRes = chess.move({ from: from, to: to, promotion: piece });
-
-    // if(!moveRes){
-    //   chess.undo()
-    // }
 
     socket.send(
       JSON.stringify({
@@ -92,6 +91,7 @@ const ChessBoard = ({
   };
 
   const handlePieceMove = (squareRepresentation: Square) => {
+    if(gamelocked) return;
     if (promotion) return; // If promotion modal is open, don't handle regular move
 
     if (!from) {
@@ -163,15 +163,13 @@ const ChessBoard = ({
     }
   };
 
-
   //console.log(time);
 
   return (
     <>
       <div
-        className={`text-black w-full ${
-          myColor === "black" ? "rotate-180" : ""
-        }`}
+        className={`text-black w-full ${myColor === "black" ? "rotate-180" : ""
+          }`}
       >
         {board.map((row, i) => {
           return (
@@ -185,24 +183,21 @@ const ChessBoard = ({
                 return (
                   <div
                     key={j}
-                    className={`w-[6.4rem]  flex justify-center items-center h-[9vh] ${
-                      (i + j) % 2 === 0 ? "bg-zinc-500" : "bg-green-500"
-                    }`}
+                    className={`w-[6.4rem]  flex justify-center items-center h-[9vh] ${(i + j) % 2 === 0 ? "bg-zinc-500" : "bg-green-500"
+                      }`}
                     onClick={() => {
                       handlePieceMove(squareRepresentation);
                     }}
                   >
                     <p
-                      className={`text-center ${
-                        myColor === "black" ? "rotate-180" : ""
-                      }`}
+                      className={`text-center ${myColor === "black" ? "rotate-180" : ""
+                        }`}
                     >
                       <img
-                        src={`/${
-                          square?.color === "b"
+                        src={`/${square?.color === "b"
                             ? square.type
                             : square?.type.toUpperCase() + " copy"
-                        }.png`}
+                          }.png`}
                         alt=""
                       />
                     </p>

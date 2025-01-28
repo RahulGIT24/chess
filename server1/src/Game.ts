@@ -1,6 +1,6 @@
 import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
-import { ERROR, GAME_OVER, INIT_GAME, MOVE } from "./messages";
+import { ERROR, GAME_OVER, INIT_GAME, MOVE, RESIGN } from "./messages";
 import { moveValidator } from "./lib/validators";
 
 export class Game {
@@ -171,5 +171,20 @@ export class Game {
         })
       );
     }
+  }
+
+  resign(color:string){
+    this.player2.send(
+      JSON.stringify({
+        type: RESIGN,
+        payload: {color},
+      })
+    )
+    this.player1.send(
+      JSON.stringify({
+        type: RESIGN,
+        payload: {color},
+      })
+    );
   }
 }

@@ -7,11 +7,13 @@ import SideMenu from "../components/SideMenu";
 import UserDetails from "../components/UserDetails";
 import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
 export const GAME_OVER = "game_over";
 export const ERROR = "error";
+export const RESIGN = "resign"
 
 export interface UserMoves {
   piece: string;
@@ -30,15 +32,35 @@ const Game = () => {
   const [myTurn, setMyturn] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<null | string>(null)
 
+  const [resignModal, setResignModal] = useState<boolean>(false);
+  const [resignedColor, setResignedColor] = useState("")
+
   // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
   const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
   const [winner, setWinner] = useState<null | string>(null)
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
+  const [gameLocked,setGameLocked] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
+  }
+
+  const onResign = () => {
+    setResignModal(true);
+  }
+
+  const onResignConfirm = (arg: boolean) => {
+    if (arg) {
+      socket?.send(JSON.stringify({
+        "type": RESIGN,
+        payload: {
+          color: myColor
+        }
+      }))
+    }
+    setResignModal(false);
   }
 
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
@@ -81,13 +103,20 @@ const Game = () => {
           pieceMove();
           setBoard(chess.board());
           break;
+
         case GAME_OVER:
           const winner = message.payload.winner;
-          console.log("My Color ",myColor)
           setWinner(winner)
           setWinnerModal(true)
-          setWinnerModal(true)
+          setGameLocked(true);
           gameend();
+          break;
+
+        case RESIGN:
+          setResignedColor(message.payload.color);
+          // setWinner(message.payload.color === "white" ? "black" : "white");
+          setWinnerModal(true)
+          setGameLocked(true);
           break;
 
         default:
@@ -104,8 +133,12 @@ const Game = () => {
   return (
     <div className="h-screen w-full bg-zinc-800 text-white">
       {
-        winner && winnerModal &&
-        <WinnerModal winner={winner as string} closeModal={closeWinnerModal} />
+        ((winner && winnerModal ) || (winnerModal && resignedColor)) && 
+        <WinnerModal winner={winner as string} closeModal={closeWinnerModal} myColor={myColor} name={name} opponentName={opponentName} resignedColor={resignedColor as string}/>
+      }
+      {
+        resignModal &&
+        <ConfirmationModal text="Do You want to Resign?" func={onResignConfirm} />
       }
       <div className="justify-center flex">
         <div className="pt-8 w-full flex justify-center items-center">
@@ -117,6 +150,7 @@ const Game = () => {
               />
               <UserDetails name={opponentName ? opponentName : "Opponent"} time={time} setTime={setTime} color={myColor === "white" ? "b" : "w"} currentTurn={currentTurn} />
               <ChessBoard
+                gamelocked={gameLocked}
                 setBoard={setBoard}
                 chess={chess}
                 board={board}
@@ -125,7 +159,7 @@ const Game = () => {
                 setMyMoves={setMyMoves}
                 setMyTurn={setMyturn}
               />
-              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} />
+              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} onResign={opponentName ? onResign : null} />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu
