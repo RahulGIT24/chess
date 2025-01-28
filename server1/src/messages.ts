@@ -4,3 +4,4 @@ export const GAME_OVER = "game_over"
 export const ERROR = 'error'
 export const TIME = 'time'
 export const RESIGN = 'resign'
+export const DRAW = 'draw'

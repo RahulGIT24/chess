@@ -8,12 +8,14 @@ import UserDetails from "../components/UserDetails";
 import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
 import ConfirmationModal from "../components/ConfirmationModal";
+import Draw from "../components/Draw";
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
 export const GAME_OVER = "game_over";
 export const ERROR = "error";
 export const RESIGN = "resign"
+export const DRAW = 'draw'
 
 export interface UserMoves {
   piece: string;
@@ -34,6 +36,7 @@ const Game = () => {
 
   const [resignModal, setResignModal] = useState<boolean>(false);
   const [resignedColor, setResignedColor] = useState("")
+  const [draw,setDraw] = useState(false);
 
   // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
@@ -83,7 +86,6 @@ const Game = () => {
           // setOpponentColor(color);
           gamestart();
           if (color == "white") {
-            console.log("black")
             setMyColor("black");
           } else {
             console.log("white")
@@ -118,6 +120,10 @@ const Game = () => {
           setWinnerModal(true)
           setGameLocked(true);
           break;
+        case DRAW:
+          setDraw(true);
+          setGameLocked(true);
+          break;
 
         default:
           break;
@@ -135,6 +141,10 @@ const Game = () => {
       {
         ((winner && winnerModal ) || (winnerModal && resignedColor)) && 
         <WinnerModal winner={winner as string} closeModal={closeWinnerModal} myColor={myColor} name={name} opponentName={opponentName} resignedColor={resignedColor as string}/>
+      }
+      {
+        draw &&
+        <Draw/>
       }
       {
         resignModal &&
