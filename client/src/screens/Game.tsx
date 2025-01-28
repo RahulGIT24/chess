@@ -125,11 +125,6 @@ const Game = () => {
           setGameLocked(true);
           break;
 
-        case DRAW:
-          setDraw(true);
-          setGameLocked(true);
-          break;
-
         default:
           break;
       }
