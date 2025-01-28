@@ -9,13 +9,7 @@ import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Draw from "../components/Draw";
-
-export const INIT_GAME = "init_game";
-export const MOVE = "move";
-export const GAME_OVER = "game_over";
-export const ERROR = "error";
-export const RESIGN = "resign"
-export const DRAW = 'draw'
+import { DRAW, GAME_OVER, INIT_GAME, MOVE, OFFER_DRAW, RESIGN } from "../constants/messages";
 
 export interface UserMoves {
   piece: string;
@@ -65,6 +59,14 @@ const Game = () => {
     }
     setResignModal(false);
   }
+
+  const offerDraw = ()=>{
+    if(!socket) return;
+    socket.send(JSON.stringify({
+      type:OFFER_DRAW
+    }))
+  }
+
 
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
   useEffect(() => {
@@ -169,7 +171,7 @@ const Game = () => {
                 setMyMoves={setMyMoves}
                 setMyTurn={setMyturn}
               />
-              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} onResign={opponentName ? onResign : null} />
+              <UserDetails name={name ? name : "Your Name"} time={time} setTime={setTime} color={myColor === "white" ? "w" : "b"} currentTurn={currentTurn} onResign={opponentName ? onResign : null} offerDraw={opponentName ? offerDraw : null}/>
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu

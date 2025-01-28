@@ -4,8 +4,9 @@ export const GAME_OVER = "game_over"
 export const ERROR = 'error'
 export const TIME = 'time'
 export const RESIGN = 'resign'
-<<<<<<< HEAD
 export const DRAW = 'draw'
-=======
-export const DRAW = 'draw'
->>>>>>> resign
+export const DRAW_OFFERED = "draw-offered"
+export const OFFER_DRAW = 'offer-draw'
+export const DRAW_OFFER_REPLY = "reply"
+export const OFFER_ACCEPTED = "draw-accepted"
+export const OFFER_REJECTED = "draw-rejected"

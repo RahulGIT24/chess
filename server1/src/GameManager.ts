@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { INIT_GAME, MOVE, RESIGN } from "./messages";
+import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN } from "./messages";
 
 export class GameManager {
     private games: Game[]
@@ -49,8 +49,25 @@ export class GameManager {
             if(message.type===RESIGN){
                 const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
                 if(game){
-                    console.log(`${message.payload.color}  has resigned`)
                     game.resign(message.payload.color)
+                }
+            }
+
+            if(message.type===OFFER_DRAW){
+                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                if(game){
+                    game.offerDraw(socket)
+                }
+            }
+            if(message.type===DRAW_OFFER_REPLY){
+                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const draw = message.draw;
+                if(game?.offerState){
+                    if(draw){
+                        game.drawAccepted();
+                    }else{
+                        game.drawRejected();
+                    }
                 }
             }
         })

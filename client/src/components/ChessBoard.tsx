@@ -1,8 +1,8 @@
 import { Color, PieceSymbol, Square } from "chess.js";
 import { useEffect, useState } from "react";
-import { ERROR, GAME_OVER, MOVE, RESIGN } from "../screens/Game";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import PromotionModal from "./PromotionModal";
+import { ERROR, MOVE } from "../constants/messages";
 
 type ChessBoardProps = {
   board: ({
@@ -162,8 +162,6 @@ const ChessBoard = ({
       }
     }
   };
-
-  //console.log(time);
 
   return (
     <>

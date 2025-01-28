@@ -1,6 +1,6 @@
 import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
-import { DRAW, ERROR, GAME_OVER, INIT_GAME, MOVE, RESIGN } from "./messages";
+import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN } from "./messages";
 import { moveValidator } from "./lib/validators";
 
 export class Game {
@@ -10,6 +10,7 @@ export class Game {
   private startTime: Date;
   private moveCount: number;
   private timer: number = 0;
+  public offerState: boolean
 
   constructor(
     player1: { socket: WebSocket; name: string; timeLeft: number },
@@ -18,6 +19,7 @@ export class Game {
   ) {
     this.player1 = player1.socket;
     this.player2 = player2.socket;
+    this.offerState = false
     this.board = new Chess();
     this.moveCount = 0;
     this.startTime = new Date();
@@ -48,7 +50,7 @@ export class Game {
         type: INIT_GAME,
         payload: {
           name: player2.name,
-          timer:player1.timeLeft,
+          timer: player1.timeLeft,
           color: "white",
         },
       })
@@ -59,7 +61,7 @@ export class Game {
         type: INIT_GAME,
         payload: {
           name: player1.name,
-          timer:player2.timeLeft,
+          timer: player2.timeLeft,
           color: "black",
         },
       })
@@ -155,10 +157,10 @@ export class Game {
       );
     }
 
-    if(this.board.isDraw()){
+    if (this.board.isDraw()) {
       this.player1.send(
         JSON.stringify({
-          type:   DRAW,
+          type: DRAW,
         })
       );
       this.player2.send(
@@ -186,17 +188,69 @@ export class Game {
     }
   }
 
-  resign(color:string){
+  offerDraw(socket: WebSocket) {
+    if (socket === this.player1) {
+      this.player2.send(
+        JSON.stringify({
+          type: DRAW_OFFERED,
+        })
+      );
+    }
+    else if (socket === this.player2) {
+      this.player1.send(
+        JSON.stringify({
+          type: DRAW_OFFERED,
+        })
+      );
+    }
+    this.setOfferState()
+  }
+
+  drawAccepted() {
+    this.player1.send(
+      JSON.stringify({
+        type: OFFER_ACCEPTED,
+      })
+    );
+    this.player2.send(
+      JSON.stringify({
+        type: OFFER_ACCEPTED,
+      })
+    );
+  }
+
+  drawRejected(){
+    this.player1.send(
+      JSON.stringify({
+        type: OFFER_REJECTED,
+      })
+    );
+    this.player2.send(
+      JSON.stringify({
+        type: OFFER_REJECTED,
+      })
+    );
+  }
+
+  setOfferState() {
+    this.offerState = true
+  }
+
+  resetOfferState() {
+    this.offerState = false
+  }
+
+  resign(color: string) {
     this.player2.send(
       JSON.stringify({
         type: RESIGN,
-        payload: {color},
+        payload: { color },
       })
     )
     this.player1.send(
       JSON.stringify({
         type: RESIGN,
-        payload: {color},
+        payload: { color },
       })
     );
   }

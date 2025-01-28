@@ -2,10 +2,10 @@ import Button from "./Button"
 import Timer from "./Timer"
 
 type UserDetailsProps = { 
-    name: string, time: number, setTime: any, color: string, currentTurn: string | null,onResign?:any
+    name: string, time: number, setTime: any, color: string, currentTurn: string | null,onResign?:any,offerDraw?:any
 }
 
-const UserDetails = ({ name, time, setTime, color, currentTurn,onResign }: UserDetailsProps) => {
+const UserDetails = ({ name, time, setTime, color, currentTurn,onResign,offerDraw }: UserDetailsProps) => {
     return (
 
         <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
@@ -15,6 +15,10 @@ const UserDetails = ({ name, time, setTime, color, currentTurn,onResign }: UserD
                 <Timer time={time} setTime={setTime} color={color} currentTurn={currentTurn} />
             </div>
             <div>
+                {
+                    offerDraw &&
+                    <Button onClick={offerDraw}>Offer Draw</Button>
+                }
                 {
                     onResign &&
                     <Button onClick={onResign}>Resign</Button>
