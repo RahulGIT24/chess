@@ -1,7 +1,7 @@
 import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
-import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "./messages";
-import { moveValidator } from "./lib/validators";
+import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "../lib/messages";
+import { moveValidator } from "../lib/validators";
 
 export class Game {
   public player1: WebSocket;
