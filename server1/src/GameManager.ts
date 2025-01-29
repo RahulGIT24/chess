@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN } from "./messages";
+import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN, TIME_UP } from "./messages";
 
 export class GameManager {
     private games: Game[]
@@ -61,13 +61,20 @@ export class GameManager {
             }
             if(message.type===DRAW_OFFER_REPLY){
                 const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
-                const draw = message.draw;
+                const draw = message.payload.draw;
                 if(game?.offerState){
                     if(draw){
                         game.drawAccepted();
                     }else{
                         game.drawRejected();
                     }
+                }
+            }
+
+            if(message.type===TIME_UP){
+                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                if(game){
+                    game.timeUp(message.payload.color);
                 }
             }
         })

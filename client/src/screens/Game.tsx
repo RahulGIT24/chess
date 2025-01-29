@@ -11,10 +11,14 @@ import ConfirmationModal from "../components/ConfirmationModal";
 import Draw from "../components/Draw";
 import {
   DRAW,
+  DRAW_OFFER_REPLY,
+  DRAW_OFFERED,
   GAME_OVER,
   INIT_GAME,
   MOVE,
+  OFFER_ACCEPTED,
   OFFER_DRAW,
+  OFFER_REJECTED,
   RESIGN,
 } from "../constants/messages";
 
@@ -46,17 +50,19 @@ const Game = () => {
   const [winner, setWinner] = useState<null | string>(null);
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
   const [gameLocked, setGameLocked] = useState(false);
+  const [drawModal,setDrawModal] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
   };
 
   const onResign = () => {
+    if(gameLocked) return;
     setResignModal(true);
   };
 
-  const onResignConfirm = (arg: boolean) => {
-    if (arg) {
+  const onResignConfirm = () => {
+      if(gameLocked) return;
       socket?.send(
         JSON.stringify({
           type: RESIGN,
@@ -65,11 +71,16 @@ const Game = () => {
           },
         })
       );
-    }
-    setResignModal(false);
+      setResignModal(false);
   };
 
+  const closeResignModal = ()=>{
+    setResignModal(false);
+  }
+
+
   const offerDraw = () => {
+    if(gameLocked) return;
     if (!socket) return;
     socket.send(
       JSON.stringify({
@@ -137,11 +148,44 @@ const Game = () => {
           setGameLocked(true);
           break;
 
+        case OFFER_ACCEPTED:
+          setDraw(true);
+          setGameLocked(true);
+          setDrawModal(false);
+          break
+
+        case OFFER_REJECTED:
+          setDrawModal(false);
+          break;
+        
+        case DRAW_OFFERED:
+          setDrawModal(true)
+          break
+
         default:
           break;
       }
     };
   }, [socket]);
+
+  const drawAccept = () =>{
+    if(gameLocked) return;
+    socket?.send(JSON.stringify({
+      type:DRAW_OFFER_REPLY,
+      payload:{
+        draw:true
+      }
+    }))
+  }
+  const drawReject = () =>{
+    if(gameLocked) return;
+    socket?.send(JSON.stringify({
+      type:DRAW_OFFER_REPLY,
+      payload:{
+        draw:false
+      }
+    }))
+  }
 
   useEffect(() => {
     setCurrentTurn(chess.turn());
@@ -160,11 +204,35 @@ const Game = () => {
           resignedColor={resignedColor as string}
         />
       )}
-      {draw && <Draw />}
+      {draw && <Draw onClose={()=>{setDraw(false)}}/>}
       {resignModal && (
         <ConfirmationModal
           text="Do You want to Resign?"
-          func={onResignConfirm}
+          buttons={[
+            {
+              text:"Yes",
+              func:onResignConfirm
+            },
+            {
+              text:"No",
+              func:closeResignModal
+            }
+          ]}
+        />
+      )}
+      {drawModal && (
+        <ConfirmationModal
+          text="Opponent Offered Draw"
+          buttons={[
+            {
+              text:"Accept",
+              func:drawAccept
+            },
+            {
+              text:"Reject",
+              func:drawReject
+            }
+          ]}
         />
       )}
       <div className="justify-center flex">
@@ -202,6 +270,7 @@ const Game = () => {
                 onResign={opponentName ? onResign : null}
                 offerDraw={opponentName ? offerDraw : null}
                 myTurn ={myTurn}
+                socket={socket}
 
               />
               <UserMovesSection moves={myMoves} color={myColor} />

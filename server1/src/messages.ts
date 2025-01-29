@@ -10,3 +10,4 @@ export const OFFER_DRAW = 'offer-draw'
 export const DRAW_OFFER_REPLY = "reply"
 export const OFFER_ACCEPTED = "draw-accepted"
 export const OFFER_REJECTED = "draw-rejected"
+export const TIME_UP = "time-up"
