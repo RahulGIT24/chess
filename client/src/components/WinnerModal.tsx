@@ -7,14 +7,15 @@ type WinnerProps = {
     myColor: string,
     name: string,
     opponentName: string
-    resignedColor?: string
+    resignedColor?: string,
+    timeUpColor?:string
 }
 
 const WinnerModal = ({
     winner,
     closeModal,
     myColor,
-    name, opponentName, resignedColor
+    name, opponentName, resignedColor,timeUpColor
 }: WinnerProps) => {
     useEffect(() => {
         // Prevent scrolling when the modal is open
@@ -69,6 +70,17 @@ const WinnerModal = ({
                     </p>
                     <p className="text-lg text-center mb-6 text-red-600 font-black">
                         {resignedColor === myColor ? name : opponentName} Resigned
+                    </p>
+                    </>
+                }
+                {
+                    timeUpColor &&
+                    <>
+                    <p className="text-lg text-center mb-6 text-white">
+                        🎉 {timeUpColor === myColor ? opponentName : name} has won the game! 🎉
+                    </p>
+                    <p className="text-lg text-center mb-6 text-red-600 font-black">
+                        {timeUpColor === myColor ? name : opponentName} Timed Out!
                     </p>
                     </>
                 }

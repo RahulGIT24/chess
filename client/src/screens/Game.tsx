@@ -43,7 +43,7 @@ const Game = () => {
   const [resignModal, setResignModal] = useState<boolean>(false);
   const [resignedColor, setResignedColor] = useState("");
   const [draw, setDraw] = useState(false);
-
+  const [timeUpColor, setTimeUpColor] = useState("");
   // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
@@ -85,9 +85,9 @@ const Game = () => {
           },
         })
       );
-      setWinnerModal(true);
-      setWinner(myColor==='white'?'black':'white')
-      
+    setWinnerModal(true);
+    setWinner(myColor === "white" ? "black" : "white");
+    setTimeUpColor(myColor)
   };
   const closeResignModal = () => {
     setResignModal(false);
@@ -185,6 +185,7 @@ const Game = () => {
               : "black"
           ); */
           setWinner(myColor);
+          setTimeUpColor(message.payload.color);
           break;
         default:
           break;
@@ -232,6 +233,7 @@ const Game = () => {
           name={name}
           opponentName={opponentName}
           resignedColor={resignedColor as string}
+          timeUpColor={timeUpColor}
         />
       )}
       {draw && (
