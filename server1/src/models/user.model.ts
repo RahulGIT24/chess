@@ -12,6 +12,10 @@ const userSchema = new Schema({
     },
     profilePicture:{
         type:String,
+    },
+    refreshToken:{
+        type:String,
+        index:true
     }
 },{
     timestamps:true

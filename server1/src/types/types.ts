@@ -8,3 +8,7 @@ export interface IApiResponse<T>{
     data:T,
     message:string
 }
+
+export interface DecodedToken{
+    user_id:string
+}
