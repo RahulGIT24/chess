@@ -3,17 +3,17 @@ import Timer from "./Timer"
 
 type UserDetailsProps = { 
     name: string, time: number, setTime: any, color: string, myTurn:boolean,currentTurn: string | null,onResign?:any,offerDraw?:any,
-    socket?:WebSocket
+    socket?:WebSocket,timeUp?:any 
 }
 
-const UserDetails = ({ name, time, setTime, color, currentTurn,onResign,offerDraw ,myTurn,socket}: UserDetailsProps) => {
+const UserDetails = ({ name, time, setTime, color, currentTurn,onResign,offerDraw ,myTurn,socket, timeUp}: UserDetailsProps) => {
     return (
 
         <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
             <div className="flex items-center gap-x-5">
                 <img src="/user.png" alt="" className="w-10 h-10 bg-white rounded-full border border-white" />
                 <p className="font-serif font-semibold text-xl">{name}</p>
-                <Timer time={time} setTime={setTime} color={color} currentTurn={currentTurn} myTurn ={myTurn} socket={socket}/>
+                <Timer time={time} setTime={setTime} color={color} currentTurn={currentTurn} myTurn ={myTurn} socket={socket} timeUp={timeUp}/>
             </div>
             <div>
                 {

@@ -7,14 +7,16 @@ export default function Timer({
   color,
   currentTurn,
   myTurn,
-  socket
+  socket,
+  timeUp,
 }: {
   time: number;
   setTime: (update: (prev: number) => number) => void;
   color: string;
   currentTurn: string | null;
   myTurn: boolean;
-  socket?: WebSocket
+  socket?: WebSocket;
+  timeUp: () => void;
 }) {
   const [timer, setTimer] = useState<number>(time);
 
@@ -25,18 +27,11 @@ export default function Timer({
     if (timer === 0 || !myTurn) return;
 
     if (timer == 0 && myTurn && socket) {
-      socket.send(JSON.stringify(
-        { 
-          type: TIME_UP,
-          payload:{
-            color
-          }
-        }
-      ))
+      timeUp();
     }
 
     const interval = setInterval(() => {
-      console.log(color, "time", timer, time)
+      console.log(color, "time", timer, time);
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
@@ -52,4 +47,3 @@ export default function Timer({
     </div>
   );
 }
-

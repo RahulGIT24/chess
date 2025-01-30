@@ -4,7 +4,7 @@ import { refreshAccessToken } from "./refreshAccessToken"
 
 type apiCallParams = {
     url: string,
-    data: any,
+    data?: any,
     method: string
 }
 
