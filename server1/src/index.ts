@@ -7,8 +7,13 @@ import cookieParser from "cookie-parser"
 
 const app = express();
 
+dotenv.config({
+    path: ".env"
+})
+
 app.use(cors({
-    origin: "*"
+    origin: process.env.CLIENT_URL,
+    credentials: true
 }))
 
 app.use(express.json())
@@ -16,9 +21,6 @@ app.use(cookieParser())
 
 const PORT = process.env.SERVER_PORT || 5001
 
-dotenv.config({
-    path: ".env"
-})
 
 const wss = new WebSocketServer({ port: Number(process.env.SOCKET_PORT) });
 
@@ -40,11 +42,9 @@ wss.on('connection', function connection(ws) {
 
 // imports for routes
 import authRoutes from "./routes/auth.routes.js"
-import { dbConnect } from './lib/connectToDB';
 
 app.use("/auth", authRoutes)
 
-dbConnect().then(() =>
-    app.listen(PORT, () => {
-        console.log(`Listening on PORT ${PORT}`)
-    })).catch(e => console.log(e))
+app.listen(PORT, () => {
+    console.log(`Listening on PORT ${PORT}`)
+})

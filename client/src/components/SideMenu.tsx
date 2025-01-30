@@ -2,6 +2,10 @@ import { useState } from "react"
 import { INIT_GAME } from "../constants/messages"
 import Button from "./Button"
 import DropDown from "./DropDown"
+import { apiCall } from "../lib/apiCall"
+import { GET } from "../constants/methods"
+import toast from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 
 type SideMenuProps = {
     waiting: null | boolean,
@@ -12,15 +16,25 @@ type SideMenuProps = {
     socket: WebSocket
 }
 
-
 const SideMenu = ({ waiting, setName, started, name, setWaiting, socket }: SideMenuProps) => {
 
     const [time, setTime] = useState<string>("10 M");
     const options = ["10 M", "20 M", "30 M", "60 M"];
 
+    const navigate = useNavigate();
+
+    const logout = async()=>{
+        try {
+            const res = await apiCall({data:{},url:"/auth/logout",method:GET})
+            toast.success(res.message)
+            navigate("/")
+            return;
+        } catch (error) {
+            return error
+        }
+    }
 
     return (
-
         waiting === null &&
         <div className="w-full flex items-center justify-center flex-col gap-y-3 h-[93vh] bg-zinc-900 relative">
             <p className="absolute top-0 py-4 font-bold text-7xl">Chess Arena</p>
@@ -40,9 +54,10 @@ const SideMenu = ({ waiting, setName, started, name, setWaiting, socket }: SideM
                 }))
                 setWaiting(true)
             }}>Play</Button>}
-
+            <div className="absolute bottom-0 w-full">
+                <Button onClick={()=>{logout()}} classname="w-full">Log Out</Button>
+            </div>
         </div>
-
     )
 }
 

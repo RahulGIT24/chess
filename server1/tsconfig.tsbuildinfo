@@ -1,1 +1,1 @@
-{"root":["./src/Game.ts","./src/GameManager.ts","./src/index.ts","./src/messages.ts","./src/lib/validators.ts","./src/types/types.ts"],"version":"5.7.3"}
+{"root":["./src/index.ts","./src/controllers/auth.controller.ts","./src/game/Game.ts","./src/game/GameManager.ts","./src/lib/ApiResponse.ts","./src/lib/asyncHandler.ts","./src/lib/connectToDB.ts","./src/lib/googleclient.ts","./src/lib/messages.ts","./src/lib/validators.ts","./src/middleware/auth.ts","./src/models/user.model.ts","./src/routes/auth.routes.ts","./src/types/types.ts"],"version":"5.7.3"}

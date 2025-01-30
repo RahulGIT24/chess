@@ -1,9 +1,16 @@
 import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import GoogleAuth from "../components/GoogleAuth"
+import { useAuth } from "../hooks/useAuth"
 
 const Landing = () => {
     const navigate = useNavigate()
+    const [user,authenticated] = useAuth()
+
+    if(authenticated){
+        navigate("/game")
+    }
+
     return (
         <div className="h-screen w-full flex justify-center items-center bg-zinc-800">
             <div>
