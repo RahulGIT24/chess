@@ -24,6 +24,8 @@ import {
 } from "../constants/messages";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 export interface UserMoves {
   piece: string;
@@ -31,17 +33,20 @@ export interface UserMoves {
 }
 
 const Game = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const isGuest = searchParams.get("guest");
+  const [isAuthenticated] = useAuth();
+  const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.user);
 
-  if(searchParams.get("guest")){
-    return;
-  }else{
-    const [isAuthenticated] = useAuth()
-    const navigate = useNavigate();
-    if(!isAuthenticated){
+  useEffect(() => {
+    if(!user?.name){
       navigate("/")
     }
-  }
+    if (!isGuest && !isAuthenticated) {
+      navigate("/");
+    }
+  }, [isGuest, isAuthenticated, navigate]);
 
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());

@@ -5,15 +5,18 @@ import { useAuth } from "../hooks/useAuth"
 import {v4 as uuidv4 } from "uuid"
 import { useDispatch } from "react-redux"
 import { setUser } from "../redux/reducers/userReducer"
+import { useEffect } from "react"
 
 const Landing = () => {
     const navigate = useNavigate()
     const [isAuthenticated] = useAuth()
     const dispatch = useDispatch();
 
-    if(isAuthenticated){
-        navigate("/game")
-    }
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/game");
+        }
+    }, [isAuthenticated, navigate]);
 
     const guest = ()=>{
         const randomId = uuidv4().slice(0,9);
