@@ -48,8 +48,8 @@ export default function Timer({
           .padStart(2, "0")
       }
       :{
-        timer &&
-        (timer % 60).toString().padStart(2, "0")
+        timer ?
+        (timer % 60).toString().padStart(2, "0"):"00"
       }
     </div>
   );

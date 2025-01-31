@@ -2,10 +2,13 @@ import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { apiCall } from '../lib/apiCall';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setAuthenticated, setUser } from '../redux/reducers/userReducer';
 
 const GoogleAuth = () => {
 
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const googleAuth = async ({ credential, client_id }: { credential: string, client_id: string }) => {
     try {
@@ -14,6 +17,8 @@ const GoogleAuth = () => {
           credential, client_id
         }, method: "POST", url: "/auth/google-auth"
       })
+      dispatch(setUser(res.data))
+      dispatch(setAuthenticated(true))
       toast.success(res.message);
       navigate("/game")
     } catch (error: any) {

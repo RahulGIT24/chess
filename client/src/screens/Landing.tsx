@@ -2,14 +2,28 @@ import { useNavigate } from "react-router-dom"
 import Button from "../components/Button"
 import GoogleAuth from "../components/GoogleAuth"
 import { useAuth } from "../hooks/useAuth"
+import {v4 as uuidv4 } from "uuid"
+import { useDispatch } from "react-redux"
+import { setUser } from "../redux/reducers/userReducer"
 
 const Landing = () => {
     const navigate = useNavigate()
-    const [user,authenticated] = useAuth()
+    const [isAuthenticated] = useAuth()
+    const dispatch = useDispatch();
 
-    if(authenticated){
+    if(isAuthenticated){
         navigate("/game")
     }
+
+    const guest = ()=>{
+        const randomId = uuidv4().slice(0,9);
+        const guestName = "GUEST_"+randomId
+        const user = {
+            name:guestName
+        }
+        dispatch(setUser(user))
+        navigate("/game?guest=true")
+    }   
 
     return (
         <div className="h-screen w-full flex justify-center items-center bg-zinc-800">
@@ -21,8 +35,8 @@ const Landing = () => {
                     <div className="flex justify-center items-center flex-col">
                         <h1 className="text-5xl text-center font-bold text-white mb-14">Play Chess Online</h1>
                         <div className="mt-4 flex justify-center items-center flex-col gap-y-4">
-                            <Button onClick={()=>{navigate("/game")}} classname="w-full">
-                                Play Online
+                            <Button onClick={()=>{guest()}} classname="w-full">
+                                Play Online as Guest
                             </Button>
                             <p className="text-white">OR</p>
                             <GoogleAuth/>

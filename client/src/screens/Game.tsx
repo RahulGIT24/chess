@@ -22,6 +22,8 @@ import {
   RESIGN,
   TIME_UP,
 } from "../constants/messages";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export interface UserMoves {
   piece: string;
@@ -29,6 +31,18 @@ export interface UserMoves {
 }
 
 const Game = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  if(searchParams.get("guest")){
+    return;
+  }else{
+    const [isAuthenticated] = useAuth()
+    const navigate = useNavigate();
+    if(!isAuthenticated){
+      navigate("/")
+    }
+  }
+
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());
   const [board, setBoard] = useState(chess.board());
@@ -277,7 +291,7 @@ const Game = () => {
                 setMyTurn={setMyturn}
               />
               <UserDetails
-                name={name ? name : "Your Name"}
+                // name={name ? name : "Your Name"}
                 time={time}
                 color={myColor === "white" ? "w" : "b"}
                 onResign={opponentName ? onResign : null}
@@ -289,7 +303,7 @@ const Game = () => {
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu
-              name={name}
+              // name={name}
               setName={setName}
               setWaiting={setWaiting}
               waiting={waiting}
