@@ -24,13 +24,7 @@ const UserDetails = ({
   myTurn,
   socket,
 }: UserDetailsProps) => {
-  const [myName, setMyname] = useState<string>("");
-  const { user } = useSelector((state: RootState) => state.user);
-  useEffect(() => {
-    if (user?.name) setMyname(user.name);
-    console.log("zdfhzdh", myName)
-    console.log("the name ",name)
-  }, [user?.name,name]);
+
   return (
     <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
@@ -40,7 +34,7 @@ const UserDetails = ({
           className="w-10 h-10 bg-white rounded-full border border-white"
         />
         <p className="font-serif font-semibold text-xl">
-          {name!=='' && name? name : myName}
+          {name&& name}
         </p>
         <Timer time={time} color={color} myTurn={myTurn} socket={socket} />
       </div>

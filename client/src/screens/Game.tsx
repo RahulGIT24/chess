@@ -36,24 +36,20 @@ const Game = () => {
   const [searchParams] = useSearchParams();
   const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
-  const [usr,isAuthenticated] = useAuth();
+  const [usr, isAuthenticated] = useAuth();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.user);
   useEffect(() => {
-    console.log("guest :",isGuest, isAuthenticated,user,usr)
-    if(!user?.name){
-      
-      navigate("/")
-      console.log('here')
-    }
+    console.log("guest :", isGuest, isAuthenticated, user, usr);
+    if (!user?.name) {
+      navigate("/");
+      console.log("here");
+    } else setName(user?.name);
     if (!isGuest && !isAuthenticated) {
       navigate("/");
-      console.log('there')
+      console.log("there");
     }
   }, [isGuest, isAuthenticated, navigate]);
-
-
-
 
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());
@@ -77,7 +73,7 @@ const Game = () => {
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
   const [gameLocked, setGameLocked] = useState(false);
   const [drawModal, setDrawModal] = useState(false);
-  const [gameStart,setGameStart] = useState(false);
+  const [gameStart, setGameStart] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
@@ -188,8 +184,8 @@ const Game = () => {
         case TIME_UP:
           setGameLocked(true);
           setWinnerModal(true);
-          setWinner(message.payload.color)
-          setTimeUpColor(message.payload.color=="white"?"black":"white")
+          setWinner(message.payload.color);
+          setTimeUpColor(message.payload.color == "white" ? "black" : "white");
           break;
         default:
           break;
@@ -303,7 +299,7 @@ const Game = () => {
                 setMyTurn={setMyturn}
               />
               <UserDetails
-                // name={name ? name : "Your Name"}
+                name={name ? name : "Your Name"}
                 time={time}
                 color={myColor === "white" ? "w" : "b"}
                 onResign={opponentName ? onResign : null}
