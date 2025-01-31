@@ -4,7 +4,7 @@ import GoogleAuth from "../components/GoogleAuth"
 import { useAuth } from "../hooks/useAuth"
 import {v4 as uuidv4 } from "uuid"
 import { useDispatch } from "react-redux"
-import { setUser } from "../redux/reducers/userReducer"
+import { setGuest, setUser } from "../redux/reducers/userReducer"
 import { useEffect } from "react"
 
 const Landing = () => {
@@ -15,18 +15,24 @@ const Landing = () => {
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/game");
+            console.log('it is ')
         }
-    }, [isAuthenticated, navigate]);
-
-    const guest = ()=>{
-        const randomId = uuidv4().slice(0,9);
-        const guestName = "GUEST_"+randomId
-        const user = {
-            name:guestName
-        }
-        dispatch(setUser(user))
-        navigate("/game?guest=true")
-    }   
+    }, [isAuthenticated]);
+ 
+        const guest = ()=>{
+            const randomId = uuidv4().slice(0,9);
+            const guestName = "GUEST_"+randomId
+            const user = {
+                name:guestName
+            }
+            dispatch(setUser(user))
+            dispatch(setGuest(true));
+            setTimeout(() => {
+                navigate("/game?guest=true")
+                
+            }, 100);
+            console.log('thsi too')
+        } 
 
     return (
         <div className="h-screen w-full flex justify-center items-center bg-zinc-800">

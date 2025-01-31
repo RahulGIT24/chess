@@ -34,19 +34,26 @@ export interface UserMoves {
 
 const Game = () => {
   const [searchParams] = useSearchParams();
-  const isGuest = searchParams.get("guest");
-  const [isAuthenticated] = useAuth();
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
+
+  const [usr,isAuthenticated] = useAuth();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.user);
-
   useEffect(() => {
+    console.log("guest :",isGuest, isAuthenticated,user,usr)
     if(!user?.name){
+      
       navigate("/")
+      console.log('here')
     }
     if (!isGuest && !isAuthenticated) {
       navigate("/");
+      console.log('there')
     }
   }, [isGuest, isAuthenticated, navigate]);
+
+
+
 
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());
