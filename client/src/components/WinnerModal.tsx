@@ -8,14 +8,14 @@ type WinnerProps = {
     name: string,
     opponentName: string
     resignedColor?: string,
-    timeUpColor?:string
+    timeUpColor?: string
 }
 
 const WinnerModal = ({
     winner,
     closeModal,
     myColor,
-    name, opponentName, resignedColor,timeUpColor
+    name, opponentName, resignedColor, timeUpColor
 }: WinnerProps) => {
     useEffect(() => {
         // Prevent scrolling when the modal is open
@@ -28,10 +28,6 @@ const WinnerModal = ({
     const handleClose = () => {
         closeModal();
     };
-
-    useEffect(()=>{
-        console.log(winner)
-    },[winner])
 
     const navigate = useNavigate()
 
@@ -65,24 +61,21 @@ const WinnerModal = ({
                 {
                     resignedColor &&
                     <>
-                    <p className="text-lg text-center mb-6 text-white">
-                        🎉 {resignedColor === myColor ? opponentName : name} has won the game! 🎉
-                    </p>
-                    <p className="text-lg text-center mb-6 text-red-600 font-black">
-                        {resignedColor === myColor ? name : opponentName} Resigned
-                    </p>
+                        <p className="text-lg text-center mb-6 text-white">
+                            🎉 {resignedColor === myColor ? opponentName : name} has won the game! 🎉
+                        </p>
+                        <p className="text-lg text-center mb-6 text-red-600 font-black">
+                            {resignedColor === myColor ? name : opponentName} Resigned
+                        </p>
                     </>
                 }
                 {
                     timeUpColor &&
-                    <>
-                    <p className="text-lg text-center mb-6 text-white">
-                        🎉 {timeUpColor === myColor ? opponentName : name} has won the game! 🎉
-                    </p>
+
                     <p className="text-lg text-center mb-6 text-red-600 font-black">
                         {timeUpColor === myColor ? name : opponentName} Timed Out!
                     </p>
-                    </>
+
                 }
             </div>
         </div>

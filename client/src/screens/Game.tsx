@@ -36,7 +36,7 @@ const Game = () => {
   const [name, setName] = useState("");
   const [waiting, setWaiting] = useState<null | boolean>(null);
   const [opponentName, setOpponentName] = useState("");
-  const [time, setTime] = useState<number>(0);
+  const [time, setTime] = useState<number | null>(null);
   const [myTurn, setMyturn] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<null | string>(null);
 
@@ -44,7 +44,6 @@ const Game = () => {
   const [resignedColor, setResignedColor] = useState("");
   const [draw, setDraw] = useState(false);
   const [timeUpColor, setTimeUpColor] = useState("");
-  // const [opponentColor, setOpponentColor] = useState("");
   const [myColor, setMyColor] = useState("");
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
   const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
@@ -52,6 +51,7 @@ const Game = () => {
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
   const [gameLocked, setGameLocked] = useState(false);
   const [drawModal, setDrawModal] = useState(false);
+  const [gameStart,setGameStart] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
@@ -75,20 +75,6 @@ const Game = () => {
     setResignModal(false);
   };
 
-  const timeUp = () => {
-    if (socket)
-      socket.send(
-        JSON.stringify({
-          type: TIME_UP,
-          payload: {
-            color: myColor,
-          },
-        })
-      );
-    setWinnerModal(true);
-    setWinner(myColor === "white" ? "black" : "white");
-    setTimeUpColor(myColor)
-  };
   const closeResignModal = () => {
     setResignModal(false);
   };
@@ -120,12 +106,11 @@ const Game = () => {
           setStarted(true);
           setOpponentName(name);
           setTime(timer);
-          // setOpponentColor(color);
+          setGameStart(true);
           gamestart();
           if (color == "white") {
             setMyColor("black");
           } else {
-            console.log("white");
             setMyturn(true);
             setMyColor("white");
           }
@@ -153,7 +138,6 @@ const Game = () => {
 
         case RESIGN:
           setResignedColor(message.payload.color);
-          // setWinner(message.payload.color === "white" ? "black" : "white");
           setWinnerModal(true);
           setGameLocked(true);
           break;
@@ -176,16 +160,10 @@ const Game = () => {
           setDrawModal(true);
           break;
         case TIME_UP:
+          setGameLocked(true);
           setWinnerModal(true);
-          /* setWinner(
-            message.payload.color === myColor
-              ? myColor
-              : myColor === "black"
-              ? "white"
-              : "black"
-          ); */
-          setWinner(myColor);
-          setTimeUpColor(message.payload.color);
+          setWinner(message.payload.color)
+          setTimeUpColor(message.payload.color=="white"?"black":"white")
           break;
         default:
           break;
@@ -284,10 +262,9 @@ const Game = () => {
               <UserDetails
                 name={opponentName ? opponentName : "Opponent"}
                 time={time}
-                setTime={setTime}
                 color={myColor === "white" ? "b" : "w"}
-                currentTurn={currentTurn}
                 myTurn={!myTurn}
+                gameStart={gameStart}
               />
               <ChessBoard
                 gamelocked={gameLocked}
@@ -302,14 +279,12 @@ const Game = () => {
               <UserDetails
                 name={name ? name : "Your Name"}
                 time={time}
-                setTime={setTime}
                 color={myColor === "white" ? "w" : "b"}
-                currentTurn={currentTurn}
                 onResign={opponentName ? onResign : null}
                 offerDraw={opponentName ? offerDraw : null}
                 myTurn={myTurn}
                 socket={socket}
-                timeUp={timeUp}
+                gameStart={gameStart}
               />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>

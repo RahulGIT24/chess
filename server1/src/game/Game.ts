@@ -38,12 +38,8 @@ export class Game {
         break;
     }
 
-
-
     player1.timeLeft = this.timer;
     player2.timeLeft = this.timer;
-
-
 
     this.player1.send(
       JSON.stringify({
@@ -233,16 +229,17 @@ export class Game {
   }
 
   timeUp(color:string){
+    const winnerColor = color==="w" ? "black" : "white"
     this.player1.send(
       JSON.stringify({
         type: TIME_UP,
-        color:color
+        payload:{color:winnerColor}
       })
     );
     this.player2.send(
       JSON.stringify({
         type: TIME_UP,
-        color:color
+        payload:{color:winnerColor}
       })
     );
   }

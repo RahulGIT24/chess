@@ -3,47 +3,54 @@ import { TIME_UP } from "../constants/messages";
 
 export default function Timer({
   time,
-  setTime,
   color,
-  currentTurn,
   myTurn,
   socket,
-  timeUp,
 }: {
-  time: number;
-  setTime: (update: (prev: number) => number) => void;
+  time: number | null;
   color: string;
-  currentTurn: string | null;
   myTurn: boolean;
   socket?: WebSocket;
-  timeUp: () => void;
 }) {
-  const [timer, setTimer] = useState<number>(time);
+  const [timer, setTimer] = useState<number | null>(time);
 
   useEffect(() => {
-    setTimer(time);
-  }, [time]);
-  useEffect(() => {
-    if (timer === 0 || !myTurn) return;
-
-    if (timer == 0 && myTurn && socket) {
-      timeUp();
+    if (time) {
+      setTimer(time);
     }
+  }, [time]);
 
-    const interval = setInterval(() => {
-      console.log(color, "time", timer, time);
-      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+  useEffect(() => {
+    if (timer !== null && myTurn) {
+      if (timer === 0 && socket && myTurn) {
+        socket.send(
+          JSON.stringify({
+            type: TIME_UP,
+            payload: { color },
+          })
+        );
+        return;
+      }
 
-    return () => clearInterval(interval); // Clear interval when unmounting or dependencies change
-  }, [timer, color, currentTurn, setTime, myTurn]);
+      const interval = setInterval(() => {
+        setTimer((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [timer, myTurn, socket]);
 
   return (
     <div className="text-black bg-white w-32 p-2 z-10 rounded-md right-[10%] top-[0%]">
-      {Math.floor(timer / 60)
-        .toString()
-        .padStart(2, "0")}
-      :{(timer % 60).toString().padStart(2, "0")}
+      {
+        Math.floor(timer ? timer / 60 : 0)
+          .toString()
+          .padStart(2, "0")
+      }
+      :{
+        timer &&
+        (timer % 60).toString().padStart(2, "0")
+      }
     </div>
   );
 }

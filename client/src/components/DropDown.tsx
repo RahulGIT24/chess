@@ -11,7 +11,7 @@ const DropDown = ({selected,setSelected,options}:TimeDropdownProps,) => {
 
     const handleSelect = (option: string) => {
       setSelected(option);
-      setIsOpen(false); // Close dropdown after selection
+      setIsOpen(false);
     };
 
     return (
