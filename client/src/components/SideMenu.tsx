@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { INIT_GAME } from "../constants/messages"
 import Button from "./Button"
 import DropDown from "./DropDown"
@@ -24,6 +24,10 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
     const options = ["10 M", "20 M", "30 M", "60 M"];
 
     const { user } = useSelector((state: RootState) => state.user);
+
+    useEffect(() => {
+        console.log(user?.name)
+    }, [user])
 
     const name = user?.name
 
@@ -52,7 +56,7 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
                 <p className="w-full text-xl font-sans font-semibold">Select Duration</p>
                 <DropDown classname="w-[30vw]" selected={time} setSelected={setTime} options={options} />
             </div>
-            {!started && <Button disabled={name && name.length > 3 ? false : true} classname={`w-64 mt-4 font-bold ${name && name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 w-[30vw] py-4 text-4xl'} `} onClick={() => {
+            {!started && <Button disabled={name && name.length > 3 ? false : true} classname={`mt-4 font-bold w-[30vw] py-4 text-4xl ${name && name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 '} `} onClick={() => {
                 socket.send(JSON.stringify({
                     type: INIT_GAME,
                     name: name,
@@ -60,9 +64,12 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
                 }))
                 setWaiting(true)
             }}>Play</Button>}
-            <div className="absolute bottom-0 w-full">
-                <Button onClick={() => { logout() }} classname="w-full">Log Out</Button>
-            </div>
+            {
+                user &&
+                <div className="absolute bottom-0 w-full">
+                    <Button onClick={() => { logout() }} classname="w-full">Log Out</Button>
+                </div>
+            }
         </div>
     )
 }

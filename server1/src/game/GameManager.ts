@@ -1,16 +1,17 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
 import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN, TIME_UP } from "../lib/messages";
+import { PendingUser } from "./PendingUsers";
+import { timeConv } from "../lib/timeConstants";
 
 export class GameManager {
     private games: Game[]
-    private pendingUser: { socket: WebSocket, name: string, timeLeft: number } | null
+    private static pendingUser: PendingUser = new PendingUser()
     private users: WebSocket[]
 
     constructor() {
         this.games = []
         this.users = []
-        this.pendingUser = null;
     }
 
     addUser(socket: WebSocket) {
@@ -26,15 +27,17 @@ export class GameManager {
         socket.on("message", (data) => {
             const message = JSON.parse(data.toString())
             const username = message.name;
-
+            
             if (message.type === INIT_GAME) {
-                if (this.pendingUser) {
-                    // const game = new Game(this.pendingUser,{socket,name:username,timeLeft:0}, message.time)
-                    const game = new Game(this.pendingUser, { socket, name: username, timeLeft: 0 }, message.time)
+                const time = message.time;
+                const timeInMil = timeConv(time) as number;
+                // console.log(timeInMil)
+                const pendingUser=GameManager.pendingUser?.deque(timeInMil);
+                if (pendingUser) {
+                    const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil }, message.time)
                     this.games.push(game);
-                    this.pendingUser = null;
                 } else {
-                    this.pendingUser = { socket, name: username, timeLeft: 0 } //phatega yaha
+                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: timeInMil })
                 }
             }
 

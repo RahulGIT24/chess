@@ -1,8 +1,7 @@
 import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
 import Button from "./Button";
 import Timer from "./Timer";
-import { useEffect, useState } from "react";
+import { RootState } from "../redux/store";
 
 type UserDetailsProps = {
   name?: string;
@@ -24,6 +23,7 @@ const UserDetails = ({
   myTurn,
   socket,
 }: UserDetailsProps) => {
+  const { user } = useSelector((state: RootState) => state.user);
 
   return (
     <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
@@ -34,7 +34,7 @@ const UserDetails = ({
           className="w-10 h-10 bg-white rounded-full border border-white"
         />
         <p className="font-serif font-semibold text-xl">
-          {name&& name}
+          {name ? name : user?.name}
         </p>
         <Timer time={time} color={color} myTurn={myTurn} socket={socket} />
       </div>

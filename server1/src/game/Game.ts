@@ -2,6 +2,7 @@ import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
 import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "../lib/messages";
 import { moveValidator } from "../lib/validators";
+import { timeConv } from "../lib/timeConstants";
 
 export class Game {
   public player1: WebSocket;
@@ -23,20 +24,7 @@ export class Game {
     this.board = new Chess();
     this.moveCount = 0;
     this.startTime = new Date();
-    switch (time) {
-      case "10 M":
-        this.timer = 600;
-        break;
-      case "20 M":
-        this.timer = 1200;
-        break;
-      case "30 M":
-        this.timer = 1800;
-        break;
-      case "60 M":
-        this.timer = 3600;
-        break;
-    }
+    this.timer = timeConv(time) as number
 
     player1.timeLeft = this.timer;
     player2.timeLeft = this.timer;
@@ -72,7 +60,6 @@ export class Game {
       promotion?: string;
     }
   ) {
-    // console.log(move)
     if (!moveValidator(move)) {
       socket.send(
         JSON.stringify({

@@ -33,23 +33,28 @@ export interface UserMoves {
 }
 
 const Game = () => {
-  const [searchParams] = useSearchParams();
+  // const [searchParams] = useSearchParams();
   const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
-  const [usr, isAuthenticated] = useAuth();
+  const [isAuthenticated] = useAuth();
   const navigate = useNavigate();
-  const { user } = useSelector((state: RootState) => state.user);
+  // const { user } = useSelector((state: RootState) => state.user);
   useEffect(() => {
-    console.log("guest :", isGuest, isAuthenticated, user, usr);
-    if (!user?.name) {
-      navigate("/");
-      console.log("here");
-    } else setName(user?.name);
-    if (!isGuest && !isAuthenticated) {
-      navigate("/");
-      console.log("there");
+
+    if(!isAuthenticated){
+      navigate("/")
     }
-  }, [isGuest, isAuthenticated, navigate]);
+
+    // const url = location.href.split("/")
+    // const last = url[url.length-1];
+    // if (!user?.name) {
+    //   navigate("/");
+    // } else setName(user?.name);
+    // if (!isGuest && !isAuthenticated) {
+    //   navigate("/");
+    //   console.log("there");
+    // }
+  }, [isAuthenticated]);
 
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());
@@ -299,7 +304,7 @@ const Game = () => {
                 setMyTurn={setMyturn}
               />
               <UserDetails
-                name={name ? name : "Your Name"}
+                // name={name ? name : "Your Name"}
                 time={time}
                 color={myColor === "white" ? "w" : "b"}
                 onResign={opponentName ? onResign : null}
