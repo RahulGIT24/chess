@@ -3,23 +3,27 @@ import WebSocket from "ws";
 import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "../lib/messages";
 import { moveValidator } from "../lib/validators";
 import { timeConv } from "../lib/timeConstants";
+import { GameSave } from "./GameSave";
 
 export class Game {
-  public player1: WebSocket;
-  public player2: WebSocket;
+  public player1: {socket:WebSocket,id:string};
+  public player2: {socket:WebSocket,id:string};
   private board: Chess;
   private startTime: Date;
   private moveCount: number;
   private timer: number = 0;
   public offerState: boolean
+  private id:string
+  private static gameDBController = new GameSave()
 
   constructor(
-    player1: { socket: WebSocket; name: string; timeLeft: number },
-    player2: { socket: WebSocket; name: string; timeLeft: number },
-    time: string
+    player1: { socket: WebSocket; name: string; timeLeft: number,id:string },
+    player2: { socket: WebSocket; name: string; timeLeft: number,id:string },
+    time: string,
+    id:string
   ) {
-    this.player1 = player1.socket;
-    this.player2 = player2.socket;
+    this.player1 = {socket:player1.socket,id:player1.id};
+    this.player2 = {socket:player2.socket,id:player2.id};
     this.offerState = false
     this.board = new Chess();
     this.moveCount = 0;
@@ -28,8 +32,10 @@ export class Game {
 
     player1.timeLeft = this.timer;
     player2.timeLeft = this.timer;
+    this.id = id;
+    Game.gameDBController.setid(id)
 
-    this.player1.send(
+    this.player1.socket.send(
       JSON.stringify({
         type: INIT_GAME,
         payload: {
@@ -40,7 +46,7 @@ export class Game {
       })
     );
 
-    this.player2.send(
+    this.player2.socket.send(
       JSON.stringify({
         type: INIT_GAME,
         payload: {
@@ -50,6 +56,13 @@ export class Game {
         },
       })
     );
+
+    Game.gameDBController.initGameSave({
+      id:this.id,
+      player1:player1.id,
+      player2:player2.id,
+      duration:this.timer
+    }).catch(e=>(console.log(e)))
   }
 
   makeMove(
@@ -69,12 +82,8 @@ export class Game {
       );
       return;
     }
-    // validate the type of move using zod
-    // validate move
-    // is it this users move
-    // is the move valid
 
-    if (this.moveCount % 2 == 0 && socket !== this.player2) {
+    if (this.moveCount % 2 == 0 && socket !== this.player2.socket) {
       socket.send(
         JSON.stringify({
           type: ERROR,
@@ -83,7 +92,7 @@ export class Game {
       );
       return;
     }
-    if (this.moveCount % 2 == 1 && socket !== this.player1) {
+    if (this.moveCount % 2 == 1 && socket !== this.player1.socket) {
       socket.send(
         JSON.stringify({
           type: ERROR,
@@ -122,47 +131,51 @@ export class Game {
     }
 
     if (this.board.isGameOver()) {
-      this.player1.send(
+      const winnerColor = this.board.turn() === "w" ? "black" : "white";
+      this.player1.socket.send(
         JSON.stringify({
           type: GAME_OVER,
           payload: {
-            winner: this.board.turn() === "w" ? "black" : "white",
+            winner: winnerColor
           },
         })
       );
-      this.player2.send(
+      this.player2.socket.send(
         JSON.stringify({
           type: GAME_OVER,
           payload: {
-            winner: this.board.turn() === "w" ? "black" : "white",
+            winner: winnerColor
           },
         })
       );
+      const winnerId = winnerColor === "black" ? this.player1.id : this.player2.id;
+      Game.gameDBController.handleWin(winnerId).catch(e=>console.log(e))
     }
 
     if (this.board.isDraw()) {
-      this.player1.send(
+      this.player1.socket.send(
         JSON.stringify({
           type: DRAW,
         })
       );
-      this.player2.send(
+      this.player2.socket.send(
         JSON.stringify({
           type: DRAW,
         })
       );
+      Game.gameDBController.handleDraw().catch(e=>console.log(e))
     }
 
     // send the updated board to both players
     if (this.moveCount % 2 == 0) {
-      this.player2.send(
+      this.player2.socket.send(
         JSON.stringify({
           type: MOVE,
           payload: move,
         })
       );
     } else {
-      this.player1.send(
+      this.player1.socket.send(
         JSON.stringify({
           type: MOVE,
           payload: move,
@@ -172,15 +185,15 @@ export class Game {
   }
 
   offerDraw(socket: WebSocket) {
-    if (socket === this.player1) {
-      this.player2.send(
+    if (socket === this.player1.socket) {
+      this.player2.socket.send(
         JSON.stringify({
           type: DRAW_OFFERED,
         })
       );
     }
-    else if (socket === this.player2) {
-      this.player1.send(
+    else if (socket === this.player2.socket) {
+      this.player1.socket.send(
         JSON.stringify({
           type: DRAW_OFFERED,
         })
@@ -190,45 +203,47 @@ export class Game {
   }
 
   drawAccepted() {
-    this.player1.send(
+    this.player1.socket.send(
       JSON.stringify({
         type: OFFER_ACCEPTED,
       })
     );
-    this.player2.send(
+    this.player2.socket.send(
       JSON.stringify({
         type: OFFER_ACCEPTED,
       })
     );
+    Game.gameDBController.handleDraw().catch(e=>console.log(e));
   }
 
   drawRejected(){
-    this.player1.send(
+    this.player1.socket.send(
       JSON.stringify({
         type: OFFER_REJECTED,
       })
     );
-    this.player2.send(
+    this.player2.socket.send(
       JSON.stringify({
         type: OFFER_REJECTED,
       })
     );
   }
 
-  timeUp(color:string){
+  timeUp(color:string,playerId:string){
     const winnerColor = color==="w" ? "black" : "white"
-    this.player1.send(
+    this.player1.socket.send(
       JSON.stringify({
         type: TIME_UP,
         payload:{color:winnerColor}
       })
     );
-    this.player2.send(
+    this.player2.socket.send(
       JSON.stringify({
         type: TIME_UP,
         payload:{color:winnerColor}
       })
     );
+    Game.gameDBController.handleWin(playerId).catch(e=>console.log(e))
   }
 
   setOfferState() {
@@ -239,18 +254,19 @@ export class Game {
     this.offerState = false
   }
 
-  resign(color: string) {
-    this.player2.send(
+  resign(color: string,id:string) {
+    this.player2.socket.send(
       JSON.stringify({
         type: RESIGN,
         payload: { color },
       })
     )
-    this.player1.send(
+    this.player1.socket.send(
       JSON.stringify({
         type: RESIGN,
         payload: { color },
       })
     );
+    Game.gameDBController.handleResign(id).catch(e=>console.log(e))
   }
 }

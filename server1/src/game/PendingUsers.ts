@@ -1,8 +1,4 @@
-import { WebSocket } from "ws";
-
-export interface IPending{
-    socket: WebSocket, name: string, timeLeft: number
-}
+import { IPending } from "../types/types";
 
 export class PendingUser {
     private pendingUsers:IPending[] | null;

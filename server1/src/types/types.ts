@@ -1,3 +1,5 @@
+import { WebSocket } from "ws"
+
 export interface Move{
     from:string,
     to:string
@@ -11,4 +13,18 @@ export interface IApiResponse<T>{
 
 export interface DecodedToken{
     user_id:string
+}
+
+export interface IPending{
+    socket: WebSocket,
+    name: string,
+    timeLeft: number
+    id:string
+}
+
+export interface SaveInitGame{
+    id:string,
+    player1:string,
+    player2:string,
+    duration:number
 }

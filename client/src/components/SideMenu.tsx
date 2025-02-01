@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { INIT_GAME } from "../constants/messages"
 import Button from "./Button"
 import DropDown from "./DropDown"
@@ -25,12 +25,6 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
 
     const { user } = useSelector((state: RootState) => state.user);
 
-    useEffect(() => {
-        console.log(user?.name)
-    }, [user])
-
-    const name = user?.name
-
     const navigate = useNavigate();
 
     const logout = async () => {
@@ -56,11 +50,12 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
                 <p className="w-full text-xl font-sans font-semibold">Select Duration</p>
                 <DropDown classname="w-[30vw]" selected={time} setSelected={setTime} options={options} />
             </div>
-            {!started && <Button disabled={name && name.length > 3 ? false : true} classname={`mt-4 font-bold w-[30vw] py-4 text-4xl ${name && name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 '} `} onClick={() => {
+            {!started && <Button disabled={user?.name && user?.name.length > 3 ? false : true} classname={`mt-4 font-bold w-[30vw] py-4 text-4xl ${user?.name && user?.name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 '} `} onClick={() => {
                 socket.send(JSON.stringify({
                     type: INIT_GAME,
-                    name: name,
-                    time: time
+                    name: user?.name,
+                    time: time,
+                    id:user?.id
                 }))
                 setWaiting(true)
             }}>Play</Button>}

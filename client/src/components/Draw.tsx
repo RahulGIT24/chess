@@ -9,7 +9,7 @@ const Draw = ({ onClose }:{onClose:()=>void}) => {
         >
           X
         </button>
-        <h2 className="text-xl font-bold text-center mb-4 text-black">Game Drawn</h2>
+        <h2 className="text-xl font-bold text-center mb-4 text-black">Game Draw</h2>
       </div>
     </div>
   );

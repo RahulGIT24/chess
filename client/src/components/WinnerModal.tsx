@@ -1,11 +1,12 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 type WinnerProps = {
     winner?: string;
     closeModal: () => void;
     myColor: string,
-    name: string,
+    // name: string,
     opponentName: string
     resignedColor?: string,
     timeUpColor?: string
@@ -15,7 +16,7 @@ const WinnerModal = ({
     winner,
     closeModal,
     myColor,
-    name, opponentName, resignedColor, timeUpColor
+    opponentName, resignedColor, timeUpColor
 }: WinnerProps) => {
     useEffect(() => {
         // Prevent scrolling when the modal is open
@@ -29,7 +30,7 @@ const WinnerModal = ({
         closeModal();
     };
 
-    const navigate = useNavigate()
+    const { user } = useSelector((state: RootState) => state.user);
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -55,27 +56,25 @@ const WinnerModal = ({
                 {
                     winner &&
                     <p className="text-lg text-center mb-6 text-white">
-                        🎉 {winner === myColor ? name : opponentName} has won the game! 🎉
+                        🎉 {winner === myColor ? user?.name : opponentName} has won the game! 🎉
                     </p>
                 }
                 {
                     resignedColor &&
                     <>
                         <p className="text-lg text-center mb-6 text-white">
-                            🎉 {resignedColor === myColor ? opponentName : name} has won the game! 🎉
+                            🎉 {resignedColor === myColor ? opponentName : user?.name} has won the game! 🎉
                         </p>
                         <p className="text-lg text-center mb-6 text-red-600 font-black">
-                            {resignedColor === myColor ? name : opponentName} Resigned
+                            {resignedColor === myColor ?  user?.name : opponentName} Resigned
                         </p>
                     </>
                 }
                 {
                     timeUpColor &&
-
                     <p className="text-lg text-center mb-6 text-red-600 font-black">
-                        {timeUpColor === myColor ? name : opponentName} Timed Out!
+                        {timeUpColor === myColor ? user?.name : opponentName} Timed Out!
                     </p>
-
                 }
             </div>
         </div>

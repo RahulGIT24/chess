@@ -235,7 +235,7 @@ const Game = () => {
           winner={winner as string}
           closeModal={closeWinnerModal}
           myColor={myColor}
-          name={name}
+          // name={user}
           opponentName={opponentName}
           resignedColor={resignedColor as string}
           timeUpColor={timeUpColor}

@@ -3,6 +3,7 @@ import { Game } from "./Game";
 import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN, TIME_UP } from "../lib/messages";
 import { PendingUser } from "./PendingUsers";
 import { timeConv } from "../lib/timeConstants";
+import { v4 as uuidv4 } from 'uuid';
 
 export class GameManager {
     private games: Game[]
@@ -30,40 +31,43 @@ export class GameManager {
             
             if (message.type === INIT_GAME) {
                 const time = message.time;
+                const userid = message.id
                 const timeInMil = timeConv(time) as number;
-                // console.log(timeInMil)
                 const pendingUser=GameManager.pendingUser?.deque(timeInMil);
                 if (pendingUser) {
-                    const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil }, message.time)
+                    const id = uuidv4();
+                    const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil,id:userid }, message.time,id)
                     this.games.push(game);
                 } else {
-                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: timeInMil })
+                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: timeInMil,id:userid })
                 }
             }
 
 
             if (message.type === MOVE) {
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 if (game) {
                     game.makeMove(socket, message.payload.move)
                 }
             }
 
             if(message.type===RESIGN){
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
+                const id = game?.player1.socket === socket ? game.player1.id : game?.player2.id as string
                 if(game){
-                    game.resign(message.payload.color)
+                    game.resign(message.payload.color,id)
                 }
             }
 
             if(message.type===OFFER_DRAW){
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 if(game){
                     game.offerDraw(socket)
                 }
             }
+
             if(message.type===DRAW_OFFER_REPLY){
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 const draw = message.payload.draw;
                 if(game?.offerState){
                     if(draw){
@@ -75,9 +79,10 @@ export class GameManager {
             }
 
             if(message.type===TIME_UP){
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket)
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 if(game){
-                    game.timeUp(message.payload.color);
+                    const winner = game.player1.socket === socket ? game.player2.id : game.player1.id
+                    game.timeUp(message.payload.color,winner);
                 }
             }
         })
