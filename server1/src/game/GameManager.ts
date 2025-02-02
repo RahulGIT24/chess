@@ -4,11 +4,13 @@ import { DRAW_OFFER_REPLY, INIT_GAME, MOVE, OFFER_DRAW, RESIGN, TIME_UP } from "
 import { PendingUser } from "./PendingUsers";
 import { timeConv } from "../lib/timeConstants";
 import { v4 as uuidv4 } from 'uuid';
+import { GameSave } from "./GameSave";
 
 export class GameManager {
     private games: Game[]
     private static pendingUser: PendingUser = new PendingUser()
     private users: WebSocket[]
+    private static GameDBCalls = new GameSave();
 
     constructor() {
         this.games = []
@@ -33,8 +35,12 @@ export class GameManager {
                 const userid = message.id
                 const timeInMil = timeConv(time) as number;
                 const pendingUser=GameManager.pendingUser?.deque(timeInMil);
-                if(pendingUser?.id === userid) return;
                 if (pendingUser) {
+                    if(pendingUser?.id === userid) return;
+                    
+                    if(!GameManager.GameDBCalls.checkCompatibility({player1:pendingUser.id,player2:userid})){
+                        return;
+                    }
                     const id = uuidv4();
                     const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil,id:userid }, message.time,id)
                     this.games.push(game);
