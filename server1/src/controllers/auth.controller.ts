@@ -43,6 +43,11 @@ export const googleAuth = asyncHandler(async (req, res) => {
                         profilePicture: payload.picture,
                     },
                 });
+                await prisma.rating.create({
+                    data:{
+                        player:user.id
+                    }
+                })
             }
 
             const { accessToken, refreshToken } = generateAccessandRefreshTokens({

@@ -28,12 +28,12 @@ export class GameManager {
         socket.on("message", (data) => {
             const message = JSON.parse(data.toString())
             const username = message.name;
-            
             if (message.type === INIT_GAME) {
                 const time = message.time;
                 const userid = message.id
                 const timeInMil = timeConv(time) as number;
                 const pendingUser=GameManager.pendingUser?.deque(timeInMil);
+                if(pendingUser?.id === userid) return;
                 if (pendingUser) {
                     const id = uuidv4();
                     const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil,id:userid }, message.time,id)
