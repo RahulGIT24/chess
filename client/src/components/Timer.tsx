@@ -6,11 +6,13 @@ export default function Timer({
   color,
   myTurn,
   socket,
+  gameLocked
 }: {
   time: number | null;
   color: string;
   myTurn: boolean;
   socket?: WebSocket;
+  gameLocked:boolean
 }) {
   const [timer, setTimer] = useState<number | null>(time);
 
@@ -21,6 +23,9 @@ export default function Timer({
   }, [time]);
 
   useEffect(() => {
+    if(gameLocked) {
+      return ; 
+    }
     if (timer !== null && myTurn) {
       if (timer === 0 && socket && myTurn) {
         socket.send(

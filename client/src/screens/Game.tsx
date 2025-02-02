@@ -198,6 +198,8 @@ const Game = () => {
     };
   }, [socket]);
 
+
+  console.log(gameLocked)
   const drawAccept = () => {
     if (gameLocked) return;
     socket?.send(
@@ -292,6 +294,7 @@ const Game = () => {
                 color={myColor === "white" ? "b" : "w"}
                 myTurn={!myTurn}
                 gameStart={gameStart}
+                gameLocked={gameLocked}
               />
               <ChessBoard
                 gamelocked={gameLocked}
@@ -312,6 +315,7 @@ const Game = () => {
                 myTurn={myTurn}
                 socket={socket}
                 gameStart={gameStart}
+                gameLocked={gameLocked}
               />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>

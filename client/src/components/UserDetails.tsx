@@ -11,7 +11,8 @@ type UserDetailsProps = {
   onResign?: any;
   offerDraw?: any;
   socket?: WebSocket;
-  gameStart: boolean;
+  gameStart?: boolean;
+  gameLocked:boolean
 };
 
 const UserDetails = ({
@@ -22,6 +23,7 @@ const UserDetails = ({
   offerDraw,
   myTurn,
   socket,
+  gameLocked
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -36,7 +38,7 @@ const UserDetails = ({
         <p className="font-serif font-semibold text-xl">
           {name ? name : user?.name}
         </p>
-        <Timer time={time} color={color} myTurn={myTurn} socket={socket} />
+        <Timer time={time} color={color} myTurn={myTurn} socket={socket} gameLocked={gameLocked}/>
       </div>
       <div>
         {offerDraw && (
