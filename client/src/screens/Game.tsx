@@ -243,6 +243,8 @@ const Game = () => {
     };
   }, [socket]);
 
+
+  console.log(gameLocked)
   const drawAccept = () => {
     if (gameLocked) return;
     socket?.send(
@@ -342,6 +344,7 @@ const Game = () => {
                 color={myColor === "white" ? "b" : "w"}
                 myTurn={!myTurn}
                 gameStart={gameStart}
+                // gameLocked={gameLocked}
                 setTimer={setOpponentTimer}
                 decrementTimer={decrementOpponentTimer}
               />
@@ -365,6 +368,7 @@ const Game = () => {
                 gameStart={gameStart}
                 setTimer={setMyTimer}
                 decrementTimer={decrementMyTimer}
+                // gameLocked={gameLocked}
               />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>

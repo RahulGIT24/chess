@@ -20,6 +20,9 @@ export default function Timer({
   const dispatch = useDispatch()
 
   useEffect(() => {
+    // if(gameLocked) {
+    //   return ; 
+    // }
     if (timer !== null && myTurn) {
       if (timer === 0 && socket && myTurn) {
         socket.send(
