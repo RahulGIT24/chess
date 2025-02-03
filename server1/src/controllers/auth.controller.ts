@@ -59,7 +59,7 @@ export const googleAuth = asyncHandler(async (req, res) => {
                 where: { id: user.id },
                 data: { refreshToken: refreshToken },
             });
-
+            
             return res.status(200)
                 .cookie("accesstoken", accessToken, {
                     httpOnly: true,
@@ -71,7 +71,7 @@ export const googleAuth = asyncHandler(async (req, res) => {
                     secure: true,
                     sameSite: "strict",
                 })
-                .json(new ApiResponse(200, user, "Signed In"));
+                .json(new ApiResponse(200, {user,accessToken,refreshToken}, "Signed In"));
         } else {
             throw new ApiResponse(400, null, "Error while getting user id from Google");
         }

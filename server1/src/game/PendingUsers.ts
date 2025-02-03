@@ -1,21 +1,23 @@
 import { IPending } from "../types/types";
 
 export class PendingUser {
-    private pendingUsers:IPending[] | null;
+    private pendingUsers: IPending[] | null;
 
-    constructor(){
+    constructor() {
         this.pendingUsers = [];
+        console.log(this.pendingUsers);
     }
 
-    enque(args:IPending){
+    enque(args: IPending) {
         this.pendingUsers?.push(args);
     }
-    
-    deque(time:number){
-        const index = this.pendingUsers?.findIndex((t:IPending)=>t.timeLeft===time)
-        if(index==-1 || index == undefined){
+
+    deque(time: number, userId: string) {
+        const index = this.pendingUsers?.findIndex((t: IPending) => t.timeLeft === time && t.id !== userId);
+        if (index === -1 || index === undefined) {
             return null;
         }
         return this.pendingUsers?.splice(index, 1)[0] || null;
     }
+    
 }

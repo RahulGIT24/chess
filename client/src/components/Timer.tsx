@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { TIME_UP } from "../constants/messages";
+import { useDispatch } from "react-redux";
+
 
 export default function Timer({
-  time,
+  timer,
   color,
   myTurn,
   socket,
+  decrementTimer
 }: {
-  time: number | null;
+  timer: number | null;
   color: string;
   myTurn: boolean;
   socket?: WebSocket;
+  decrementTimer:any
 }) {
-  const [timer, setTimer] = useState<number | null>(time);
 
-  useEffect(() => {
-    if (time) {
-      setTimer(time);
-    }
-  }, [time]);
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (timer !== null && myTurn) {
@@ -33,7 +32,7 @@ export default function Timer({
       }
 
       const interval = setInterval(() => {
-        setTimer((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+        dispatch(decrementTimer())
       }, 1000);
 
       return () => clearInterval(interval);

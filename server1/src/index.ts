@@ -1,3 +1,4 @@
+import { CONNECT } from './lib/messages';
 import { WebSocketServer } from 'ws';
 import { GameManager } from './game/GameManager';
 import dotenv from "dotenv"
@@ -29,12 +30,25 @@ const gameManager = new GameManager();
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
 
-    gameManager.addUser(ws);
-
     ws.on("close", () => gameManager.removeUser(ws))
 
-    ws.on('message', function message(data) {
-        // console.log('received: %s', data);
+    ws.on('message', async function message(data) {
+        const parseData = JSON.parse(String(data));
+        if (parseData.type === CONNECT) {
+            if (!parseData.id) return;
+
+            // console.log(parseData)
+            const user = await prisma.user.findFirst({
+                where:{
+                    id:parseData.id
+                }
+            })
+
+            if (user) {
+                gameManager.addUser(ws,parseData.id);
+            }
+            return;
+        }
     });
 
     ws.send('something');
@@ -42,6 +56,7 @@ wss.on('connection', function connection(ws) {
 
 // imports for routes
 import authRoutes from "./routes/auth.routes.js"
+import { prisma } from './lib/prisma';
 
 app.use("/auth", authRoutes)
 
