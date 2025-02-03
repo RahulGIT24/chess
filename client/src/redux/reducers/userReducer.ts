@@ -5,6 +5,8 @@ interface User {
   name: string | null;
   profilePicture: string | null;
   email: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
 }
 
 interface stateType {
@@ -29,8 +31,8 @@ const userSlice = createSlice({
     setAuthenticated: (state, action) => {
       state.isAuthenticated = action.payload;
     },
-    setGuest :(state, action)=>{
-        state.isGuest = action.payload;
+    setGuest: (state, action) => {
+      state.isGuest = action.payload;
     },
     logout: (state) => {
       state.user = null;
@@ -39,5 +41,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, setAuthenticated,setGuest } = userSlice.actions;
+export const { setUser, setAuthenticated, setGuest } = userSlice.actions;
 export default userSlice.reducer;

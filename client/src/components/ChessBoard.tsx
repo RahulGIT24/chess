@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import PromotionModal from "./PromotionModal";
 import { ERROR, MOVE } from "../constants/messages";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 type ChessBoardProps = {
   board: ({
@@ -43,6 +45,8 @@ const ChessBoard = ({
     capture,
   } = useSoundEffects();
 
+  const { myTimer } = useSelector((state: RootState) => state.time);
+
   const isMyPiece = (square: Square | null) => {
     const piece = board.flat().find((cell) => cell?.square === square);
     return piece && piece.color === (myColor === "white" ? "w" : "b");
@@ -78,6 +82,7 @@ const ChessBoard = ({
             from: from,
             to: to,
             promotion: piece,
+            timer:myTimer
           },
         },
       })
@@ -127,6 +132,7 @@ const ChessBoard = ({
               type: MOVE,
               payload: {
                 move: move,
+                timer:myTimer
               },
             })
           );

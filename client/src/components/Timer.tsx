@@ -1,31 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { TIME_UP } from "../constants/messages";
+import { useDispatch } from "react-redux";
+
 
 export default function Timer({
-  time,
+  timer,
   color,
   myTurn,
   socket,
-  gameLocked
+  decrementTimer
 }: {
-  time: number | null;
+  timer: number | null;
   color: string;
   myTurn: boolean;
   socket?: WebSocket;
-  gameLocked:boolean
+  decrementTimer:any
 }) {
-  const [timer, setTimer] = useState<number | null>(time);
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    if (time) {
-      setTimer(time);
-    }
-  }, [time]);
-
-  useEffect(() => {
-    if(gameLocked) {
-      return ; 
-    }
+    // if(gameLocked) {
+    //   return ; 
+    // }
     if (timer !== null && myTurn) {
       if (timer === 0 && socket && myTurn) {
         socket.send(
@@ -38,7 +35,7 @@ export default function Timer({
       }
 
       const interval = setInterval(() => {
-        setTimer((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+        dispatch(decrementTimer())
       }, 1000);
 
       return () => clearInterval(interval);

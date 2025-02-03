@@ -3,30 +3,32 @@ import Button from "./Button";
 import Timer from "./Timer";
 import { RootState } from "../redux/store";
 
+
 type UserDetailsProps = {
   name?: string;
-  time: number | null;
   color: string;
+  timer:number | null,
   myTurn: boolean;
   onResign?: any;
   offerDraw?: any;
   socket?: WebSocket;
-  gameStart?: boolean;
-  gameLocked:boolean
+  gameStart: boolean;
+  setTimer: any,
+  decrementTimer:any
 };
 
 const UserDetails = ({
   name,
-  time,
   color,
+  timer,
   onResign,
   offerDraw,
   myTurn,
   socket,
-  gameLocked
+  setTimer,
+  decrementTimer
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
-
   return (
     <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
@@ -38,7 +40,7 @@ const UserDetails = ({
         <p className="font-serif font-semibold text-xl">
           {name ? name : user?.name}
         </p>
-        <Timer time={time} color={color} myTurn={myTurn} socket={socket} gameLocked={gameLocked}/>
+        <Timer timer={timer} color={color} myTurn={myTurn} socket={socket} decrementTimer={decrementTimer}/>
       </div>
       <div>
         {offerDraw && (

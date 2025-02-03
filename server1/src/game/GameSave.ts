@@ -9,11 +9,16 @@ export class GameSave {
     }
 
     async initGameSave(args: SaveInitGame) {
-        console.log('args ', args)
         try {
-            await prisma.game.create({
-                data: args
+            const id = args.id;
+            const findGame = await prisma.game.findFirst({
+                where:{id}
             })
+            if(!findGame){
+                await prisma.game.create({
+                    data: args
+                })
+            }
         } catch (error) {
             throw new Error("Error while saving game")
         }

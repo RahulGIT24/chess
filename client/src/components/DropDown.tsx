@@ -41,9 +41,9 @@ const DropDown = ({ selected, setSelected, options, classname }: TimeDropdownPro
       </button>
       {isOpen && (
         <div className={`absolute mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 `}>
-          {options.map((option) => (
+          {options.map((option,i) => (
             <button
-              key={option}
+              key={i}
               onClick={() => handleSelect(option)}
               className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
             >
