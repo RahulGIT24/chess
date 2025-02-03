@@ -77,7 +77,7 @@ export class Game {
     },
     timer: number
   ) {
-    console.log(timer);
+    // console.log("Moved");
     if (!moveValidator(move)) {
       socket.send(
         JSON.stringify({
@@ -297,6 +297,7 @@ export class Game {
       player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color:"black" },
       player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color:"white" },
       board: this.board.fen(),
+      pgn:this.board.pgn(),
       moveCount: this.moveCount,
       offerState: this.offerState,
       matchTime: this.timeString

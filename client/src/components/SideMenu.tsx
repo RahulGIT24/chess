@@ -11,9 +11,7 @@ import { RootState } from "../redux/store"
 
 type SideMenuProps = {
     waiting: null | boolean,
-    setName: (name: string) => void,
     started: boolean,
-    // name: string,
     setWaiting: (a: boolean) => void,
     socket: WebSocket
 }
@@ -57,6 +55,7 @@ const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
                     time: time,
                     id:user?.id
                 }))
+                console.log("init1")
                 setWaiting(true)
             }}>Play</Button>}
             {

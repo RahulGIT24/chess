@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ChessBoard from "../components/ChessBoard";
 import { useSocket } from "../hooks/useSocket";
 import { Chess } from "chess.js";
@@ -24,13 +24,13 @@ import {
   RESIGN,
   TIME_UP,
 } from "../constants/messages";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ReconnectingModal from "../components/ReconnectingModal";
 import { setMyTimer, setOpponentTimer } from "../redux/reducers/timeReducer";
 import { decrementMyTimer, decrementOpponentTimer } from "../redux/reducers/timeReducer";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export interface UserMoves {
   piece: string;
@@ -39,7 +39,7 @@ export interface UserMoves {
 
 const Game = () => {
   // const [searchParams] = useSearchParams();
-  const isGuest = useSelector((state: RootState) => state.user.isGuest);
+  // const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
   const [isAuthenticated] = useAuth();
   const navigate = useNavigate();
@@ -50,27 +50,24 @@ const Game = () => {
       navigate("/")
     }
 
-    // const url = location.href.split("/")
-    // const last = url[url.length-1];
-    // if (!user?.name) {
-    //   navigate("/");
-    // } else setName(user?.name);
-    // if (!isGuest && !isAuthenticated) {
-    //   navigate("/");
-    //   console.log("there");
-    // }
+    //   // const url = location.href.split("/")
+    //   // const last = url[url.length-1];
+    //   // if (!user?.name) {
+    //   //   navigate("/");
+    //   // } else setName(user?.name);
+    //   // if (!isGuest && !isAuthenticated) {
+    //   //   navigate("/");
+    //   //   console.log("there");
+    //   // }
   }, [isAuthenticated]);
 
   const socket = useSocket();
   const [chess, setChess] = useState(new Chess());
   const [board, setBoard] = useState(chess.board());
   const [started, setStarted] = useState(false);
-  const [name, setName] = useState("");
   const [waiting, setWaiting] = useState<null | boolean>(null);
   const [opponentName, setOpponentName] = useState("");
-  const [time, setTime] = useState<number | null>(null);
   const [myTurn, setMyturn] = useState<boolean>(false);
-  const [currentTurn, setCurrentTurn] = useState<null | string>(null);
 
   const [resignModal, setResignModal] = useState<boolean>(false);
   const [resignedColor, setResignedColor] = useState("");
@@ -85,9 +82,6 @@ const Game = () => {
   const [drawModal, setDrawModal] = useState(false);
   const [gameStart, setGameStart] = useState(false);
 
-  // const [myTimer,setMyTimer] = useState<null | number>(null);
-  // const [opponentTimer,setOpponentTimer] = useState<null | number>(null);
-
   const [reconnecting, setReconnecting] = useState(false);
 
   const closeWinnerModal = () => {
@@ -99,7 +93,7 @@ const Game = () => {
     setResignModal(true);
   };
 
-  const onResignConfirm = () => {
+  const onResignConfirm = useCallback(() => {
     if (gameLocked) return;
     socket?.send(
       JSON.stringify({
@@ -110,7 +104,7 @@ const Game = () => {
       })
     );
     setResignModal(false);
-  };
+  }, [gameLocked, myColor, socket]);
 
   const closeResignModal = () => {
     setResignModal(false);
@@ -140,36 +134,59 @@ const Game = () => {
           setReconnecting(false);
           const recoveredGame = JSON.parse(message.payload.game);
           const newChess = new Chess();
-          console.log(recoveredGame);
 
-          if (recoveredGame.board) {
+          // Load the game using PGN (which contains full move history)
+          if (recoveredGame.pgn) {
+            newChess.loadPgn(recoveredGame.pgn);
+            console.log(recoveredGame.pgn)
+          } else if (recoveredGame.board) {
+            // Fallback to FEN (only current board state, no move history)
             newChess.load(recoveredGame.board);
           }
-
+          
+          console.log(newChess.history());
+          // Update chess state and board UI
           setChess(newChess);
           setBoard(newChess.board());
-          const turn = newChess.turn() === "w" ? "white" : "black";
 
-          console.log(recoveredGame)
-
-          if(user?.id === recoveredGame.player1.id){
-            setMyColor(recoveredGame.player1.color);
+          // Determine my color and set timers accordingly
+          let myColorFromGame: string;
+          if (user?.id === recoveredGame.player1.id) {
+            myColorFromGame = recoveredGame.player1.color;
             dispatch(setMyTimer(recoveredGame.player1.timeLeft));
             dispatch(setOpponentTimer(recoveredGame.player2.timeLeft));
-            setMyturn(recoveredGame.player1.color===turn);
-          }else{
-            setMyColor(recoveredGame.player2.color);
+          } else {
+            myColorFromGame = recoveredGame.player2.color;
             dispatch(setMyTimer(recoveredGame.player2.timeLeft));
             dispatch(setOpponentTimer(recoveredGame.player1.timeLeft));
-            setMyturn(recoveredGame.player2.color===turn);
           }
+          setMyColor(myColorFromGame);
 
+          // Determine whose turn it is based on Chess.js state
+          const turn = newChess.turn() === "w" ? "white" : "black";
+          setMyturn(myColorFromGame === turn);
+
+          // Rebuild the move history for the UI
+          const movesHistory = newChess.history({ verbose: true });
+          // Map moves to your UI format (adjust as needed)
+          const myMovesList = movesHistory
+            .filter(move => move.color === (myColorFromGame === "white" ? "w" : "b"))
+            .map(move => ({ piece: move.piece, place: move.to }));
+          const opponentMovesList = movesHistory
+            .filter(move => move.color !== (myColorFromGame === "white" ? "w" : "b"))
+            .map(move => ({ piece: move.piece, place: move.to }));
+
+          setMyMoves(myMovesList);
+          setOpponentMoves(opponentMovesList);
           break;
+
         case INIT_GAME:
+          console.log(INIT_GAME);
           const name = message.payload.name;
           const color = message.payload.color;
           const timer = message.payload.timer;
           setWaiting(false);
+          // console.log("init2")
           setBoard(chess.board());
           setStarted(true);
           setOpponentName(name);
@@ -244,8 +261,8 @@ const Game = () => {
   }, [socket]);
 
 
-  console.log(gameLocked)
-  const drawAccept = () => {
+  // console.log(gameLocked)
+  const drawAccept = useCallback(() => {
     if (gameLocked) return;
     socket?.send(
       JSON.stringify({
@@ -255,8 +272,8 @@ const Game = () => {
         },
       })
     );
-  };
-  const drawReject = () => {
+  }, [socket]);
+  const drawReject = useCallback(() => {
     if (gameLocked) return;
     socket?.send(
       JSON.stringify({
@@ -266,11 +283,9 @@ const Game = () => {
         },
       })
     );
-  };
+  }, [socket]);
 
-  useEffect(() => {
-    setCurrentTurn(chess.turn());
-  }, [chess, time]);
+  // const currentTurn = useMemo(() => chess.turn(), [chess]);
 
   const { myTimer, opponentTimer } = useSelector((state: RootState) => state.time);
 
@@ -368,13 +383,10 @@ const Game = () => {
                 gameStart={gameStart}
                 setTimer={setMyTimer}
                 decrementTimer={decrementMyTimer}
-                // gameLocked={gameLocked}
               />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>
             <SideMenu
-              // name={name}
-              setName={setName}
               setWaiting={setWaiting}
               waiting={waiting}
               socket={socket}
