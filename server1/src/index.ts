@@ -37,7 +37,6 @@ wss.on('connection', function connection(ws) {
         if (parseData.type === CONNECT) {
             if (!parseData.id) return;
 
-            // console.log(parseData)
             const user = await prisma.user.findFirst({
                 where:{
                     id:parseData.id

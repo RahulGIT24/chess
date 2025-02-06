@@ -10,6 +10,8 @@ import WinnerModal from "../components/WinnerModal";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Draw from "../components/Draw";
 import {
+  ADDTOGAME,
+  CHECK_EXISTING_GAME,
   DRAW,
   DRAW_OFFER_REPLY,
   DRAW_OFFERED,
@@ -30,7 +32,7 @@ import ReconnectingModal from "../components/ReconnectingModal";
 import { setMyTimer, setOpponentTimer } from "../redux/reducers/timeReducer";
 import { decrementMyTimer, decrementOpponentTimer } from "../redux/reducers/timeReducer";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export interface UserMoves {
   piece: string;
@@ -38,27 +40,33 @@ export interface UserMoves {
 }
 
 const Game = () => {
-  // const [searchParams] = useSearchParams();
-  // const isGuest = useSelector((state: RootState) => state.user.isGuest);
+  const params = useParams();
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((state: RootState) => state.user);
+
+  useEffect(()=>{
+    if(params.gameid){
+      socket?.send(JSON.stringify({
+        type:ADDTOGAME,
+        payload:{
+          gameid:params.gameid,
+          userid:user?.id
+        }
+      }))
+    }else{
+      socket?.send(JSON.stringify({
+        type:CHECK_EXISTING_GAME
+      }))
+    }
+  },[params])
 
   const [isAuthenticated] = useAuth();
   const navigate = useNavigate();
-  const { user } = useSelector((state: RootState) => state.user);
   useEffect(() => {
-
     if (!isAuthenticated) {
       navigate("/")
     }
-
-    //   // const url = location.href.split("/")
-    //   // const last = url[url.length-1];
-    //   // if (!user?.name) {
-    //   //   navigate("/");
-    //   // } else setName(user?.name);
-    //   // if (!isGuest && !isAuthenticated) {
-    //   //   navigate("/");
-    //   //   console.log("there");
-    //   // }
   }, [isAuthenticated]);
 
   const socket = useSocket();
@@ -120,8 +128,6 @@ const Game = () => {
     );
   };
 
-  const dispatch = useDispatch();
-
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
   useEffect(() => {
     if (!socket) return;
@@ -181,12 +187,13 @@ const Game = () => {
           break;
 
         case INIT_GAME:
-          console.log(INIT_GAME);
           const name = message.payload.name;
           const color = message.payload.color;
           const timer = message.payload.timer;
+          const gameid = message.payload.gameid
+          // console.log(m)
+          navigate(`/game/${gameid}`)
           setWaiting(false);
-          // console.log("init2")
           setBoard(chess.board());
           setStarted(true);
           setOpponentName(name);

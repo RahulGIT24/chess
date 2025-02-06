@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
+import { ADDTOGAME, DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, OPPO_CONNECTED, OPPO_DISCONNECT, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
 import { PendingUser } from "./PendingUsers";
 import { timeConv } from "../lib/timeConstants";
 import { v4 as uuidv4 } from 'uuid';
@@ -70,9 +70,99 @@ export class GameManager {
         }
     }
 
-    removeUser(socket: WebSocket) {
+    async removeUser(socket: WebSocket) {
         this.users = this.users.filter(user => user.socket !== socket)
+        const game = this.games.find(g => g.player1.socket === socket || g.player2.socket === socket);
+        if (!game) return;
+        if (game.player1.socket === socket) {
+            game.player1.socket = null;
+            if (game.player2.socket) {
+                game.player2.socket.send(JSON.stringify({
+                    type: OPPO_DISCONNECT
+                }))
+            }
+        } else if (game.player2.socket === socket) {
+            game.player2.socket === null;
+            if (game.player1.socket) {
+                game.player1.socket.send(JSON.stringify({
+                    type: OPPO_DISCONNECT
+                }))
+            }
+        }
+        const board = game.getBoard()
+        const gameKey = `game:${game.id}`;
+        const gameState = {
+            id: game.id,
+            player1: { id: game.player1.id, timeLeft: game.player1.timeLeft, color: "black" },
+            player2: { id: game.player2.id, timeLeft: game.player2.timeLeft, color: "white" },
+            board: board.fen(),
+            pgn: board.pgn(),
+            moveCount: game.getMoveCount(),
+            offerState: game.offerState,
+            matchTime: game.getTimeString()
+        }
+        await redis.set(gameKey, JSON.stringify(gameState));
+        await redis.expire(gameKey, 3600);
     }
+
+    async addUserBackToGame(socket: WebSocket, gameid: string, userid: string) {
+        let game = this.games.find(g => g.id === gameid);
+    
+        // Try to load from Redis if not found in memory
+        if (!game) {
+            const gameData = await redis.get(`game:${gameid}`);
+            if (!gameData) {
+                socket.send(JSON.stringify({ type: ERROR, message: "Game not found" }));
+                return;
+            }
+            game = JSON.parse(gameData);
+            if(game){
+                this.games.push(game);
+            }
+        }
+
+        if (game && (game.player1.socket === socket || game.player2.socket === socket)) {
+            return;
+        }
+    
+        if (game && (game.player1.id !== userid && game.player2.id !== userid)) {
+            socket.send(JSON.stringify({ type: ERROR, message: "You are not in this game" }));
+            return;
+        }
+        
+        if(!game) return;
+
+        // Assign the new socket and notify the opponent
+        if (game.player1.id === userid) {
+            game.player1.socket = socket;
+            if (game.player2.socket) {
+                game.player2.socket.send(JSON.stringify({ type: OPPO_CONNECTED }));
+            }
+        } else {
+            game.player2.socket = socket;
+            if (game.player1.socket) {
+                game.player1.socket.send(JSON.stringify({ type: OPPO_CONNECTED }));
+            }
+        }
+
+        this.addHandler(socket);
+
+        const gameKey = `game:${game.id}`;
+        const board  = game.getBoard();
+        const gameState = {
+            id: game.id,
+            player1: { id: game.player1.id, timeLeft: game.player1.timeLeft, color: "black" },
+            player2: { id: game.player2.id, timeLeft: game.player2.timeLeft, color: "white" },
+            board: board.fen(),
+            pgn: board.pgn(),
+            moveCount: game.getMoveCount(),
+            offerState: game.offerState,
+            matchTime: game.getTimeString()
+        }
+        await redis.set(gameKey, JSON.stringify(gameState));
+        await redis.expire(gameKey, 3600);
+    }
+    
 
     private addHandler(socket: WebSocket) {
         socket.on("message", (data) => {
@@ -94,6 +184,7 @@ export class GameManager {
 
                 if (pendingUser) {
                     if (pendingUser?.id === userid) {
+                        console.log("R1")
                         return
                     }
 
@@ -101,6 +192,7 @@ export class GameManager {
                         return;
                     }
                     const id = uuidv4();
+                    console.log(`Pending User`, pendingUser.id);
                     const game = new Game(pendingUser, { socket, name: username, timeLeft: timeInMil, id: userid }, message.time, id)
                     this.games.push(game);
                 } else {
@@ -149,6 +241,13 @@ export class GameManager {
                     const winner = game.player1.socket === socket ? game.player2.id : game.player1.id
                     game.timeUp(message.payload.color, winner);
                 }
+            }
+
+            if (message.type == ADDTOGAME) {
+                console.log(message.payload);
+                const id = message.payload.userid;
+                const gameid = message.payload.gameid;
+                this.addUserBackToGame(socket, gameid, id)
             }
         })
     }

@@ -7,14 +7,14 @@ import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
 
 export class Game {
-  public player1: { socket: WebSocket, id: string, timeLeft: number | null };
-  public player2: { socket: WebSocket, id: string, timeLeft: number | null };
+  public player1: { socket: WebSocket | null, id: string, timeLeft: number | null, name:string };
+  public player2: { socket: WebSocket | null, id: string, timeLeft: number | null, name:string };
   private board: Chess;
   private startTime: Date;
   private moveCount: number;
   private timer: number = 0;
   public offerState: boolean
-  private id: string
+  public id: string
   private static gameDBController = new GameSave()
   private timeString: string
 
@@ -24,8 +24,8 @@ export class Game {
     time: string,
     id: string
   ) {
-    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: this.timer };
-    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: this.timer };
+    this.player1 = player1;
+    this.player2 = player2;
     this.offerState = false
     this.board = new Chess();
     this.moveCount = 0;
@@ -38,6 +38,8 @@ export class Game {
     this.id = id;
     Game.gameDBController.setid(id)
 
+    if(!this.player1.socket || !this.player2.socket) return;
+
     this.player1.socket.send(
       JSON.stringify({
         type: INIT_GAME,
@@ -45,6 +47,7 @@ export class Game {
           name: player2.name,
           timer: player1.timeLeft,
           color: "white",
+          gameid:this.id
         },
       })
     );
@@ -56,6 +59,7 @@ export class Game {
           name: player1.name,
           timer: player2.timeLeft,
           color: "black",
+          gameid:this.id
         },
       })
     );
@@ -152,6 +156,7 @@ export class Game {
 
     if (this.board.isGameOver()) {
       const winnerColor = this.board.turn() === "w" ? "black" : "white";
+      if(!this.player1.socket || !this.player2.socket) return;
       this.player1.socket.send(
         JSON.stringify({
           type: GAME_OVER,
@@ -173,6 +178,7 @@ export class Game {
     }
 
     if (this.board.isDraw()) {
+      if(!this.player1.socket || !this.player2.socket) return;
       this.player1.socket.send(
         JSON.stringify({
           type: DRAW,
@@ -187,6 +193,7 @@ export class Game {
     }
 
     // send the updated board to both players
+    if(!this.player1.socket || !this.player2.socket) return;
     if (this.moveCount % 2 == 0) {
       this.player2.socket.send(
         JSON.stringify({
@@ -205,6 +212,7 @@ export class Game {
   }
 
   offerDraw(socket: WebSocket) {
+    if(!this.player1.socket || !this.player2.socket) return;
     if (socket === this.player1.socket) {
       this.player2.socket.send(
         JSON.stringify({
@@ -223,6 +231,7 @@ export class Game {
   }
 
   drawAccepted() {
+    if(!this.player1.socket || !this.player2.socket) return;
     this.player1.socket.send(
       JSON.stringify({
         type: OFFER_ACCEPTED,
@@ -237,6 +246,7 @@ export class Game {
   }
 
   drawRejected() {
+    if(!this.player1.socket || !this.player2.socket) return;
     this.player1.socket.send(
       JSON.stringify({
         type: OFFER_REJECTED,
@@ -250,6 +260,7 @@ export class Game {
   }
 
   timeUp(color: string, playerId: string) {
+    if(!this.player1.socket || !this.player2.socket) return;
     const winnerColor = color === "w" ? "black" : "white"
     this.player1.socket.send(
       JSON.stringify({
@@ -275,6 +286,7 @@ export class Game {
   }
 
   resign(color: string, id: string) {
+    if(!this.player1.socket || !this.player2.socket) return;
     this.player2.socket.send(
       JSON.stringify({
         type: RESIGN,
@@ -312,6 +324,19 @@ export class Game {
 
   setMoveCount(moveC: number) {
     this.moveCount = moveC;
+  }
+
+  getBoard(){
+    return this.board;
+  }
+
+  getMoveCount(){
+    return this.moveCount;
+  }
+
+
+  getTimeString(){
+    return this.timeString
   }
 
 }

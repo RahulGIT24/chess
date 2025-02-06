@@ -14,3 +14,7 @@ export const TIME_UP = "time-up"
 export const CONNECT = "connect"
 export const RECONNECTING="reconnecting"
 export const RECONNECTED="reconnected"
+export const OPPO_DISCONNECT = "opponent-disconnected"
+export const OPPO_CONNECTED = "oppnent-connected";
+export const ADDTOGAME = "add-to-game"
+export const CHECK_EXISTING_GAME = "check-existing-game"
