@@ -24,7 +24,7 @@ import {
   RESIGN,
   TIME_UP,
 } from "../constants/messages";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
@@ -38,7 +38,7 @@ export interface UserMoves {
 }
 
 const Game = () => {
-  // const [searchParams] = useSearchParams();
+
   const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
   const [isAuthenticated] = useAuth();
@@ -57,7 +57,7 @@ const Game = () => {
     // } else setName(user?.name);
     // if (!isGuest && !isAuthenticated) {
     //   navigate("/");
-    //   console.log("there");
+    //   //console.log("there");
     // }
   }, [isAuthenticated]);
 
@@ -129,6 +129,7 @@ const Game = () => {
   const dispatch = useDispatch();
 
   const { gamestart, gameend, move: pieceMove } = useSoundEffects();
+
   useEffect(() => {
     if (!socket) return;
 
@@ -137,34 +138,50 @@ const Game = () => {
 
       switch (message.type) {
         case RECONNECTED:
+        case RECONNECTED:
           setReconnecting(false);
-          const recoveredGame = JSON.parse(message.payload.game);
-          const newChess = new Chess();
-          console.log(recoveredGame);
+          setWaiting(false);
 
-          if (recoveredGame.board) {
-            newChess.load(recoveredGame.board);
+          const recoveredGame = JSON.parse(message.payload.game);
+          console.log("Restored FEN:", recoveredGame.fen);
+          console.log("Restored PGN:", recoveredGame.pgn);
+          console.log("Move Count:", recoveredGame.moveCount);
+
+          const newChess = new Chess();
+
+          if (recoveredGame.pgn) {
+            newChess.loadPgn(recoveredGame.pgn); // Load entire move history
+            console.log(newChess)
+          } else if (recoveredGame.fen) {
+            newChess.load(recoveredGame.fen); // Use FEN only if PGN is missing
           }
 
-          setChess(newChess);
+          setChess(newChess); // Ensure the chess instance is fully restored
           setBoard(newChess.board());
-          const turn = newChess.turn() === "w" ? "white" : "black";
 
-          console.log(recoveredGame)
-
-          if(user?.id === recoveredGame.player1.id){
+          if (user?.id === recoveredGame.player1.id) {
             setMyColor(recoveredGame.player1.color);
             dispatch(setMyTimer(recoveredGame.player1.timeLeft));
             dispatch(setOpponentTimer(recoveredGame.player2.timeLeft));
-            setMyturn(recoveredGame.player1.color===turn);
-          }else{
+            setOpponentName(recoveredGame.player2.name);
+          } else {
             setMyColor(recoveredGame.player2.color);
             dispatch(setMyTimer(recoveredGame.player2.timeLeft));
             dispatch(setOpponentTimer(recoveredGame.player1.timeLeft));
-            setMyturn(recoveredGame.player2.color===turn);
+            setOpponentName(recoveredGame.player1.name);
           }
 
+          // Ensure the correct turn is set after myColor updates
+          setTimeout(() => {
+            const myTurn = newChess.turn() === "w" && myColor === "white";
+            console.log("Final Turn:", newChess.turn());
+            console.log("Final My Turn:", myTurn);
+            console.log("Final FEN after Reconnection:", newChess.fen());
+            setMyturn(myTurn);
+          }, 0);
+
           break;
+
         case INIT_GAME:
           const name = message.payload.name;
           const color = message.payload.color;
@@ -186,15 +203,20 @@ const Game = () => {
           break;
         case MOVE:
           const move = message.payload;
-          const moveRes = chess.move(move);
+          try {
+            const moveRes = chess.move(move);
+            console.log(moveRes);
+            setOpponentMoves((prev) => [
+              { piece: moveRes.piece, place: move.to },
+              ...prev,
+            ]);
+            setMyturn(true);
+            pieceMove();
+            setBoard(chess.board());
+          } catch (error) {
+            console.log(error)
+          }
 
-          setOpponentMoves((prev) => [
-            { piece: moveRes.piece, place: move.to },
-            ...prev,
-          ]);
-          setMyturn(true);
-          pieceMove();
-          setBoard(chess.board());
           break;
 
         case GAME_OVER:
@@ -244,7 +266,7 @@ const Game = () => {
   }, [socket]);
 
 
-  console.log(gameLocked)
+  // //console.log(gameLocked)
   const drawAccept = () => {
     if (gameLocked) return;
     socket?.send(
@@ -271,6 +293,10 @@ const Game = () => {
   useEffect(() => {
     setCurrentTurn(chess.turn());
   }, [chess, time]);
+
+  useEffect(()=>{
+    console.log(chess)
+  },[chess,board])
 
   const { myTimer, opponentTimer } = useSelector((state: RootState) => state.time);
 
@@ -368,7 +394,7 @@ const Game = () => {
                 gameStart={gameStart}
                 setTimer={setMyTimer}
                 decrementTimer={decrementMyTimer}
-                // gameLocked={gameLocked}
+              // gameLocked={gameLocked}
               />
               <UserMovesSection moves={myMoves} color={myColor} />
             </div>

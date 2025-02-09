@@ -7,25 +7,25 @@ import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
 
 export class Game {
-  public player1: { socket: WebSocket, id: string, timeLeft: number | null };
-  public player2: { socket: WebSocket, id: string, timeLeft: number | null };
-  private board: Chess;
-  private startTime: Date;
-  private moveCount: number;
-  private timer: number = 0;
+  public player1: { socket: WebSocket | null, id: string, timeLeft: number | null,name:string | null };
+  public player2: { socket: WebSocket | null, id: string, timeLeft: number | null ,name:string | null};
+  public board: Chess;
+  public startTime: Date;
+  public moveCount: number;
+  public timer: number = 0;
   public offerState: boolean
-  private id: string
-  private static gameDBController = new GameSave()
-  private timeString: string
+  public id: string
+  public static gameDBController = new GameSave()
+  public timeString: string
 
   constructor(
-    player1: { socket: WebSocket; name: string; timeLeft: number, id: string },
-    player2: { socket: WebSocket; name: string; timeLeft: number, id: string },
+    player1: { socket: WebSocket | null; name: string; timeLeft: number, id: string },
+    player2: { socket: WebSocket | null; name: string; timeLeft: number, id: string },
     time: string,
     id: string
   ) {
-    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: this.timer };
-    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: this.timer };
+    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: this.timer, name:player1.name };
+    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: this.timer,name:player2.name };
     this.offerState = false
     this.board = new Chess();
     this.moveCount = 0;
@@ -37,6 +37,8 @@ export class Game {
     player2.timeLeft = this.timer;
     this.id = id;
     Game.gameDBController.setid(id)
+
+    if(!this.player1.socket || !this.player2.socket) return;
 
     this.player1.socket.send(
       JSON.stringify({
@@ -77,7 +79,6 @@ export class Game {
     },
     timer: number
   ) {
-    console.log(timer);
     if (!moveValidator(move)) {
       socket.send(
         JSON.stringify({
@@ -85,6 +86,7 @@ export class Game {
           payload: { message: "Invalid Move Format" },
         })
       );
+      console.log("Invalid Move")
       return;
     }
 
@@ -95,6 +97,7 @@ export class Game {
           payload: { message: "It's not your turn" },
         })
       );
+      console.log("Not Your Turn")
       return;
     }
     if (this.moveCount % 2 == 1 && socket !== this.player1.socket) {
@@ -104,6 +107,7 @@ export class Game {
           payload: { message: "It's not your turn" },
         })
       );
+      console.log("Not Your Turn")
       return;
     }
 
@@ -123,9 +127,7 @@ export class Game {
         this.board.move(move);
         if (this.player1.socket === socket) {
           this.player1.timeLeft = timer;
-          console.log("Timer Set Player 1",this.player1.timeLeft)
         }else{
-          console.log("Timer Set Player 2",this.player2.timeLeft)
           this.player2.timeLeft = timer;
         }
       } else {
@@ -147,122 +149,151 @@ export class Game {
           payload: { message: "Illegal Move" },
         })
       );
+      console.log(error)
       return;
     }
 
     if (this.board.isGameOver()) {
       const winnerColor = this.board.turn() === "w" ? "black" : "white";
-      this.player1.socket.send(
-        JSON.stringify({
-          type: GAME_OVER,
-          payload: {
-            winner: winnerColor
-          },
-        })
-      );
-      this.player2.socket.send(
-        JSON.stringify({
-          type: GAME_OVER,
-          payload: {
-            winner: winnerColor
-          },
-        })
-      );
+      if(this.player1.socket){
+        this.player1.socket.send(
+          JSON.stringify({
+            type: GAME_OVER,
+            payload: {
+              winner: winnerColor
+            },
+          })
+        );
+      }
+      if(this.player2.socket){
+        this.player2.socket.send(
+          JSON.stringify({
+            type: GAME_OVER,
+            payload: {
+              winner: winnerColor
+            },
+          })
+        );
+      }
       const winnerId = winnerColor === "black" ? this.player1.id : this.player2.id;
       Game.gameDBController.handleWin(winnerId).catch(e => console.log(e))
     }
 
     if (this.board.isDraw()) {
-      this.player1.socket.send(
-        JSON.stringify({
-          type: DRAW,
-        })
-      );
-      this.player2.socket.send(
-        JSON.stringify({
-          type: DRAW,
-        })
-      );
+      if(this.player1.socket){
+        this.player1.socket.send(
+          JSON.stringify({
+            type: DRAW,
+          })
+        );
+      }
+      if(this.player2.socket){
+        this.player2.socket.send(
+          JSON.stringify({
+            type: DRAW,
+          })
+        );
+      }
       Game.gameDBController.handleDraw().catch(e => console.log(e))
     }
 
     // send the updated board to both players
     if (this.moveCount % 2 == 0) {
-      this.player2.socket.send(
-        JSON.stringify({
-          type: MOVE,
-          payload: move,
-        })
-      );
+      if(this.player2.socket){
+        this.player2.socket.send(
+          JSON.stringify({
+            type: MOVE,
+            payload: move,
+          })
+        );
+      }
     } else {
+      if(this.player1.socket){
       this.player1.socket.send(
         JSON.stringify({
           type: MOVE,
           payload: move,
         })
       );
+    }
     }
   }
 
   offerDraw(socket: WebSocket) {
     if (socket === this.player1.socket) {
-      this.player2.socket.send(
-        JSON.stringify({
-          type: DRAW_OFFERED,
-        })
-      );
+      if(this.player2.socket){
+        this.player2.socket.send(
+          JSON.stringify({
+            type: DRAW_OFFERED,
+          })
+        );
+      }
     }
     else if (socket === this.player2.socket) {
-      this.player1.socket.send(
-        JSON.stringify({
-          type: DRAW_OFFERED,
-        })
-      );
+      if(this.player1.socket){
+        this.player1.socket.send(
+          JSON.stringify({
+            type: DRAW_OFFERED,
+          })
+        );
+      }
     }
     this.setOfferState()
   }
 
   drawAccepted() {
-    this.player1.socket.send(
-      JSON.stringify({
-        type: OFFER_ACCEPTED,
-      })
-    );
-    this.player2.socket.send(
-      JSON.stringify({
-        type: OFFER_ACCEPTED,
-      })
-    );
+    if(this.player1.socket){
+      this.player1.socket.send(
+        JSON.stringify({
+          type: OFFER_ACCEPTED,
+        })
+      );
+    }
+    if(this.player2.socket){
+      this.player2.socket.send(
+        JSON.stringify({
+          type: OFFER_ACCEPTED,
+        })
+      );
+    }
     Game.gameDBController.handleDraw().catch(e => console.log(e));
   }
 
   drawRejected() {
-    this.player1.socket.send(
-      JSON.stringify({
-        type: OFFER_REJECTED,
-      })
-    );
-    this.player2.socket.send(
-      JSON.stringify({
-        type: OFFER_REJECTED,
-      })
-    );
+    if(this.player1.socket){
+      this.player1.socket.send(
+        JSON.stringify({
+          type: OFFER_REJECTED,
+        })
+      );
+    }
+    if(this.player2.socket){
+      this.player2.socket.send(
+        JSON.stringify({
+          type: OFFER_REJECTED,
+        })
+      );
+    }
   }
 
   timeUp(color: string, playerId: string) {
     const winnerColor = color === "w" ? "black" : "white"
-    this.player1.socket.send(
-      JSON.stringify({
-        type: TIME_UP,
-        payload: { color: winnerColor }
-      })
-    );
-    this.player2.socket.send(
-      JSON.stringify({
-        type: TIME_UP,
-        payload: { color: winnerColor }
-      })
-    );
+    if(this.player1.socket){
+      this.player1.socket.send(
+        JSON.stringify({
+          type: TIME_UP,
+          payload: { color: winnerColor }
+        })
+      );
+    }
+    if(this.player2.socket){
+      this.player2.socket.send(
+        JSON.stringify({
+          type: TIME_UP,
+          payload: { color: winnerColor }
+        })
+      );
+    }
     Game.gameDBController.handleWin(playerId).catch(e => console.log(e))
   }
 
@@ -275,28 +306,34 @@ export class Game {
   }
 
   resign(color: string, id: string) {
-    this.player2.socket.send(
-      JSON.stringify({
-        type: RESIGN,
-        payload: { color },
-      })
-    )
-    this.player1.socket.send(
-      JSON.stringify({
-        type: RESIGN,
-        payload: { color },
-      })
-    );
+    if(this.player2.socket){
+      this.player2.socket.send(
+        JSON.stringify({
+          type: RESIGN,
+          payload: { color },
+        })
+      )
+    }
+    if(this.player1.socket){
+      this.player1.socket.send(
+        JSON.stringify({
+          type: RESIGN,
+          payload: { color },
+        })
+      );
+    }
     Game.gameDBController.handleResign(id).catch(e => console.log(e))
   }
 
   async saveGame() {
     const gameKey = `game:${this.id}`;
+    console.log(this.player1.name,this.player2.name);
     const gameState = {
       id: this.id,
-      player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color:"black" },
-      player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color:"white" },
-      board: this.board.fen(),
+      player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color:"black",name:this.player1.name },
+      player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color:"white",name:this.player1.name },
+      fen: this.board.fen(),
+      pgn:this.board.pgn(),
       moveCount: this.moveCount,
       offerState: this.offerState,
       matchTime: this.timeString

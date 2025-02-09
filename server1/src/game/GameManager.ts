@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
+import { DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, OPPO_DISCONNECT, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
 import { PendingUser } from "./PendingUsers";
 import { timeConv } from "../lib/timeConstants";
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +27,33 @@ export class GameManager {
     async addUser(socket: WebSocket, id: string) {
         this.users.push({ socket, id })
 
-        const game = await prisma.game.findFirst({
+        let game = this.games.find(g => g.player1.id === id || g.player2.id === id);
+
+        if (game) {
+            if (game.player1.id === id) {
+                game.player1.socket = socket;
+            } else {
+                game.player2.socket = socket;
+            }
+
+            const gameState = {
+                id: game.id,
+                player1: { id: game.player1.id, timeLeft: game.player1.timeLeft, color: "black",name:game.player1.name },
+                player2: { id: game.player2.id, timeLeft: game.player2.timeLeft, color: "white",name:game.player2.name },
+                fen: game.board.fen(),
+                pgn:game.board.pgn(),
+                moveCount: game.moveCount,
+                offerState: game.offerState,
+                matchTime: game.timeString
+            }
+
+            socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: JSON.stringify(gameState), message: "Game Recovered from memory" } }));
+            this.addHandler(socket);
+            return;
+        }
+
+        // not in memory check in db;
+        const dbgame = await prisma.game.findFirst({
             where: {
                 OR: [
                     { player1: id },
@@ -39,11 +65,12 @@ export class GameManager {
             },
         })
 
-        if (game && game.draw == false && game.winner == null) {
-            const gameIdKey = `game:${game.id}`
+        if (dbgame && dbgame.draw == false && dbgame.winner == null) {
+            const gameIdKey = `game:${dbgame.id}`
             redis.get(gameIdKey).then(async (game) => {
                 if (game) {
                     const parsedData = JSON.parse(game);
+                    console.log(parsedData);
                     if (parsedData) {
                         const player1Socket = this.users.find(user => user.id === parsedData.player1.id);
                         const player2Socket = this.users.find(user => user.id === parsedData.player2.id);
@@ -72,6 +99,19 @@ export class GameManager {
 
     removeUser(socket: WebSocket) {
         this.users = this.users.filter(user => user.socket !== socket)
+        const game = this.games.find(g => g.player1.socket === socket || g.player2.socket === socket);
+        if (!game) return;
+        if (game.player1.socket === socket) {
+            game.player1.socket = null;
+            if (game.player2.socket) {
+                game.player2.socket.send(JSON.stringify({ type: OPPO_DISCONNECT }));
+            }
+        } else if (game.player2.socket === socket) {
+            game.player2.socket = null;
+            if (game.player1.socket) {
+                game.player1.socket.send(JSON.stringify({ type: OPPO_DISCONNECT }));
+            }
+        }
     }
 
     private addHandler(socket: WebSocket) {
