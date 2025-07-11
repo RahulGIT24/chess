@@ -7,8 +7,8 @@ import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
 
 export class Game {
-  public player1: { socket: WebSocket | null, id: string, timeLeft: number | null,name:string | null };
-  public player2: { socket: WebSocket | null, id: string, timeLeft: number | null ,name:string | null};
+  public player1: { socket: WebSocket | null, id: string, timeLeft: number | null,name:string | null,color:"black"|"white" };
+  public player2: { socket: WebSocket | null, id: string, timeLeft: number | null ,name:string | null,color:"black"|"white"};
   public board: Chess;
   public startTime: Date;
   public moveCount: number;
@@ -17,15 +17,16 @@ export class Game {
   public id: string
   public static gameDBController = new GameSave()
   public timeString: string
+  public currentColor:string
 
   constructor(
-    player1: { socket: WebSocket | null; name: string; timeLeft: number, id: string },
-    player2: { socket: WebSocket | null; name: string; timeLeft: number, id: string },
+    player1: { socket: WebSocket | null; name: string; timeLeft: number, id: string,color:"white" | "black" },
+    player2: { socket: WebSocket | null; name: string; timeLeft: number, id: string,color:"white" | "black" },
     time: string,
     id: string
   ) {
-    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: this.timer, name:player1.name };
-    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: this.timer,name:player2.name };
+    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: this.timer, name:player1.name,color:player1.color };
+    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: this.timer,name:player2.name,color:player2.color };
     this.offerState = false
     this.board = new Chess();
     this.moveCount = 0;
@@ -37,6 +38,7 @@ export class Game {
     player2.timeLeft = this.timer;
     this.id = id;
     Game.gameDBController.setid(id)
+    this.currentColor="white"
 
     if(!this.player1.socket || !this.player2.socket) return;
 
@@ -90,7 +92,7 @@ export class Game {
       return;
     }
 
-    if (this.moveCount % 2 == 0 && socket !== this.player2.socket) {
+    if(socket===this.player2.socket && this.player2.color!=this.currentColor){
       socket.send(
         JSON.stringify({
           type: ERROR,
@@ -100,7 +102,8 @@ export class Game {
       console.log("Not Your Turn")
       return;
     }
-    if (this.moveCount % 2 == 1 && socket !== this.player1.socket) {
+
+    if(socket===this.player1.socket && this.player1.color!=this.currentColor){
       socket.send(
         JSON.stringify({
           type: ERROR,
@@ -139,6 +142,11 @@ export class Game {
           this.player2.timeLeft = timer;
           console.log("Timer Set Player 1",this.player2.timeLeft)
         }
+      }
+      if(this.currentColor=="white"){
+        this.currentColor="black"
+      }else{
+        this.currentColor="white"
       }
       this.moveCount++;
       await this.saveGame();
@@ -330,8 +338,8 @@ export class Game {
     console.log(this.player1.name,this.player2.name);
     const gameState = {
       id: this.id,
-      player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color:"black",name:this.player1.name },
-      player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color:"white",name:this.player1.name },
+      player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color:this.player1.color,name:this.player1.name },
+      player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color:this.player2.color,name:this.player1.name },
       fen: this.board.fen(),
       pgn:this.board.pgn(),
       moveCount: this.moveCount,

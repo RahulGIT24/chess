@@ -23,7 +23,7 @@ app.use(cookieParser())
 const PORT = process.env.SERVER_PORT || 5001
 
 
-const wss = new WebSocketServer({ port: Number(process.env.SOCKET_PORT) });
+const wss = new WebSocketServer({ port: Number(process.env.SOCKET_PORT) || 5002 });
 
 const gameManager = new GameManager();
 

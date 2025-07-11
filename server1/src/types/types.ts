@@ -20,6 +20,11 @@ export interface IPending{
     name: string,
     timeLeft: number
     id:string
+    // color?:"white"|"black"
+}
+
+export interface Pending extends IPending{
+    color:"white" | "black"
 }
 
 export interface SaveInitGame{

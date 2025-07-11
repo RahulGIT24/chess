@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChessBoard from "../components/ChessBoard";
 import { useSocket } from "../hooks/useSocket";
 import { Chess } from "chess.js";
@@ -39,31 +39,21 @@ export interface UserMoves {
 
 const Game = () => {
 
-  const isGuest = useSelector((state: RootState) => state.user.isGuest);
+  // const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
   const [isAuthenticated] = useAuth();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.user);
   useEffect(() => {
-
     if (!isAuthenticated) {
       navigate("/")
     }
-
-    // const url = location.href.split("/")
-    // const last = url[url.length-1];
-    // if (!user?.name) {
-    //   navigate("/");
-    // } else setName(user?.name);
-    // if (!isGuest && !isAuthenticated) {
-    //   navigate("/");
-    //   //console.log("there");
-    // }
   }, [isAuthenticated]);
 
   const socket = useSocket();
-  const [chess, setChess] = useState(new Chess());
-  const [board, setBoard] = useState(chess.board());
+  // const [chess, setChess] = useState(new Chess());
+  const chessRef = useRef<Chess>(new Chess());
+  const [board, setBoard] = useState(chessRef.current.board());
   const [started, setStarted] = useState(false);
   const [name, setName] = useState("");
   const [waiting, setWaiting] = useState<null | boolean>(null);
@@ -138,11 +128,10 @@ const Game = () => {
 
       switch (message.type) {
         case RECONNECTED:
-        case RECONNECTED:
           setReconnecting(false);
           setWaiting(false);
 
-          const recoveredGame = JSON.parse(message.payload.game);
+          const recoveredGame = message.payload.game;
           console.log("Restored FEN:", recoveredGame.fen);
           console.log("Restored PGN:", recoveredGame.pgn);
           console.log("Move Count:", recoveredGame.moveCount);
@@ -156,7 +145,7 @@ const Game = () => {
             newChess.load(recoveredGame.fen); // Use FEN only if PGN is missing
           }
 
-          setChess(newChess); // Ensure the chess instance is fully restored
+          chessRef.current = newChess; // Ensure the chess instance is fully restored
           setBoard(newChess.board());
 
           if (user?.id === recoveredGame.player1.id) {
@@ -187,7 +176,7 @@ const Game = () => {
           const color = message.payload.color;
           const timer = message.payload.timer;
           setWaiting(false);
-          setBoard(chess.board());
+          setBoard(chessRef.current.board());
           setStarted(true);
           setOpponentName(name);
           dispatch(setMyTimer(timer));
@@ -204,7 +193,7 @@ const Game = () => {
         case MOVE:
           const move = message.payload;
           try {
-            const moveRes = chess.move(move);
+            const moveRes = chessRef.current.move(move);
             console.log(moveRes);
             setOpponentMoves((prev) => [
               { piece: moveRes.piece, place: move.to },
@@ -212,7 +201,7 @@ const Game = () => {
             ]);
             setMyturn(true);
             pieceMove();
-            setBoard(chess.board());
+            setBoard(chessRef.current.board());
           } catch (error) {
             console.log(error)
           }
@@ -265,7 +254,6 @@ const Game = () => {
     };
   }, [socket]);
 
-
   // //console.log(gameLocked)
   const drawAccept = () => {
     if (gameLocked) return;
@@ -291,12 +279,8 @@ const Game = () => {
   };
 
   useEffect(() => {
-    setCurrentTurn(chess.turn());
-  }, [chess, time]);
-
-  useEffect(()=>{
-    console.log(chess)
-  },[chess,board])
+    setCurrentTurn(chessRef.current.turn());
+  }, [chessRef.current, time]);
 
   const { myTimer, opponentTimer } = useSelector((state: RootState) => state.time);
 
@@ -370,14 +354,13 @@ const Game = () => {
                 color={myColor === "white" ? "b" : "w"}
                 myTurn={!myTurn}
                 gameStart={gameStart}
-                // gameLocked={gameLocked}
                 setTimer={setOpponentTimer}
                 decrementTimer={decrementOpponentTimer}
               />
               <ChessBoard
                 gamelocked={gameLocked}
                 setBoard={setBoard}
-                chess={chess}
+                chess={chessRef.current}
                 board={board}
                 socket={socket}
                 myColor={myColor}
