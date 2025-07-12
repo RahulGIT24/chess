@@ -136,14 +136,14 @@ const ChessBoard = ({
               },
             })
           );
-          const moveRes = chess.move({
-            from: from,
-            to: squareRepresentation,
-          });
-          setMyMoves((prev: any) => [
-            { piece: moveRes.piece, place: squareRepresentation },
-            ...prev,
-          ]);
+          // const moveRes = chess.move({
+          //   from: from,
+          //   to: squareRepresentation,
+          // });
+          // setMyMoves((prev: any) => [
+          //   { piece: moveRes.piece, place: squareRepresentation },
+          //   ...prev,
+          // ]);
           setBoard(chess.board());
 
           const destinationsq = board

@@ -2,13 +2,12 @@ import { WebSocket } from "ws";
 import { Game } from "./Game";
 import { DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, OPPO_DISCONNECT, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
 import { PendingUser } from "./PendingUsers";
-import { timeConv } from "../lib/timeConstants";
+import { minutesToMilliseconds } from "../lib/timeConstants";
 import { v4 as uuidv4 } from 'uuid';
 import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
 import { prisma } from "../lib/prisma";
-import { IPending, Pending } from "../types/types";
-import { Move } from "chess.js";
+import { Pending } from "../types/types";
 
 interface User {
     socket: WebSocket,
@@ -30,7 +29,6 @@ export class GameManager {
         this.users.push({ socket, id })
 
         let game = this.games.find(g => g.player1.id === id || g.player2.id === id);
-        const randomWhite = Math.random() > 0.5
 
         if (game) {
 
@@ -48,9 +46,9 @@ export class GameManager {
                 player2: { id: game.player2.id, timeLeft: game.player2.timeLeft, color: game.player2.color, name: game.player2.name },
                 fen: game.board.fen(),
                 pgn: game.board.pgn(),
-                moveCount: game.moveCount,
+                // moveCount: game.moveCount,
                 offerState: game.offerState,
-                matchTime: game.timeString
+                // matchTime: game.timeString
             }
 
             socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: gameState, message: "Game Recovered from memory" } }));
@@ -125,10 +123,9 @@ export class GameManager {
             const message = JSON.parse(data.toString())
             const username = message.name;
             if (message.type === INIT_GAME) {
-                const time = message.time;
                 const userid = message.id
-                const timeInMil = timeConv(time) as number;
-                const pendingUser = GameManager.pendingUser?.deque(timeInMil, userid);
+                const time = minutesToMilliseconds(message.time) as number;
+                const pendingUser = GameManager.pendingUser?.deque(time, userid);
 
                 const game = this.games.find(game => game.player1.id === userid || game.player2.id === userid)
                 if (game) {
@@ -151,10 +148,10 @@ export class GameManager {
                     const player1Color = randomWhite ? "white" : "black";
                     const player2Color = randomWhite ? "black" : "white";
                     const pendingCopy: Pending = { ...pendingUser, color: player2Color }
-                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: timeInMil, id: userid, color: player1Color }, message.time, id)
+                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color }, time, id,Date.now(),"white")
                     this.games.push(game);
                 } else {
-                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: timeInMil, id: userid })
+                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid })
                 }
             }
 
@@ -245,11 +242,12 @@ export class GameManager {
             { socket: socket1, name: player1Name?.name, timeLeft: parsedGame.player1.timeLeft, id: parsedGame.player1.id, color: parsedGame.player1.color },
             { socket: socket2, name: player2Name.name, timeLeft: parsedGame.player2.timeLeft, id: parsedGame.player2.id, color: parsedGame.player2.color },
             parsedGame.matchTime,
-            parsedGame.id
+            parsedGame.id,
+            parsedGame.lastMoveTime,
+            parsedGame.currentColor
         );
 
         game.setBoard(parsedGame.board);
-        game.setMoveCount(parsedGame.moveCount)
         if (parsedGame.offerState) {
             game.setOfferState();
         } else {
