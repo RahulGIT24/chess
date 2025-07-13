@@ -1,16 +1,7 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-
-type WinnerProps = {
-    winner?: string;
-    closeModal: () => void;
-    myColor: string,
-    // name: string,
-    opponentName: string
-    resignedColor?: string,
-    timeUpColor?: string
-}
+import { WinnerProps } from "../lib/types";
 
 const WinnerModal = ({
     winner,

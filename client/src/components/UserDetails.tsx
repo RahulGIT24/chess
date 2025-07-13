@@ -1,22 +1,17 @@
 import { useSelector } from "react-redux";
-import Button from "./Button";
 import { RootState } from "../redux/store";
 
 type UserDetailsProps = {
   name?: string;
   color: string;
-  onResign: () => void;
-  offerDraw: () => void;
   opponentTimer?: number;
   myTimer?: number;
 };
 
 const UserDetails = ({
   name,
-  onResign,
   opponentTimer,
   myTimer,
-  offerDraw,
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -47,14 +42,6 @@ const UserDetails = ({
           </p>
           <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(displayTimer)}</p>
         </div>
-      </div>
-      <div>
-        {offerDraw && (
-          <Button onClick={offerDraw} classname="mx-4">
-            Offer Draw
-          </Button>
-        )}
-        {onResign && <Button onClick={onResign}>Resign</Button>}
       </div>
     </div>
   );

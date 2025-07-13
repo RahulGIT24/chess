@@ -1,8 +1,5 @@
 import { PieceSymbol } from 'chess.js'
-type PromotionProps = {
-    myColor:string,
-    handlePromotion: (piece:PieceSymbol) => void
-}
+import { PromotionProps } from '../lib/types'
 
 const PromotionModal = ({myColor,handlePromotion}:PromotionProps) => {
     return (

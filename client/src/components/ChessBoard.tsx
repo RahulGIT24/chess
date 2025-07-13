@@ -1,22 +1,9 @@
-import { Color, PieceSymbol, Square } from "chess.js";
+import { PieceSymbol, Square } from "chess.js";
 import { useEffect, useState } from "react";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import PromotionModal from "./PromotionModal";
 import { ERROR, MOVE } from "../constants/messages";
-
-type ChessBoardProps = {
-  board: ({
-    square: Square;
-    type: PieceSymbol;
-    color: Color;
-  } | null)[][];
-  socket: WebSocket;
-  setBoard: any;
-  chess: any;
-  myColor: string;
-  setMyMoves: any;
-  gamelocked:boolean
-}
+import { ChessBoardProps } from "../lib/types";
 
 const ChessBoard = ({
   board,
@@ -24,7 +11,6 @@ const ChessBoard = ({
   setBoard,
   chess,
   myColor = "white",
-  setMyMoves,
   gamelocked,
 }: ChessBoardProps) => {
   const [from, setFrom] = useState<Square | null>(null);
@@ -65,7 +51,6 @@ const ChessBoard = ({
   const handlePromotion = (piece: PieceSymbol) => {
     if(gamelocked) return;
     if (!promotion) return;
-    const moveRes = chess.move({ from: from, to: to, promotion: piece });
 
     socket.send(
       JSON.stringify({
@@ -79,7 +64,6 @@ const ChessBoard = ({
         },
       })
     );
-    setMyMoves((prev: any) => [{ piece: moveRes.piece, place: to }, ...prev]);
     setBoard(chess.board());
     piecePromote();
     setPromotion(null);
@@ -134,7 +118,7 @@ const ChessBoard = ({
           //   { piece: moveRes.piece, place: squareRepresentation },
           //   ...prev,
           // ]);
-          setBoard(chess.board());
+          // setBoard(chess.board());
 
           const destinationsq = board
             .flat()

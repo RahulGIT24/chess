@@ -1,11 +1,5 @@
 import { useState } from "react";
-
-type TimeDropdownProps = {
-  selected: string,
-  setSelected: (args: string) => void,
-  options: string[],
-  classname?: string
-}
+import { TimeDropdownProps } from "../lib/types";
 
 const DropDown = ({ selected, setSelected, options, classname }: TimeDropdownProps,) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

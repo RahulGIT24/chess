@@ -3,9 +3,7 @@ import ChessBoard from "../components/ChessBoard";
 import { useSocket } from "../hooks/useSocket";
 import { Chess } from "chess.js";
 import { useSoundEffects } from "../hooks/useSoundEffects";
-import SideMenu from "../components/SideMenu";
 import UserDetails from "../components/UserDetails";
-import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
 import Draw from "../components/Draw";
 import {
@@ -29,14 +27,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ReconnectingModal from "../components/ReconnectingModal";
 import OpponentDetails from "../components/OpponentDetails";
-import Waiting from "./Waiting";
 import ResignModal from "../components/ResignModal";
 import DrawModal from "../components/DrawModal";
-
-export interface UserMoves {
-  piece: string;
-  place: string;
-}
+import MoveHistory from "../components/MoveHistory";
 
 const Game = () => {
   const [isAuthenticated] = useAuth();
@@ -53,9 +46,7 @@ const Game = () => {
   const socket = useSocket();
   const chessRef = useRef<Chess>(new Chess());
   const [board, setBoard] = useState(chessRef.current.board());
-  const [started, setStarted] = useState(false);
-  const [name, setName] = useState("");
-  const [waiting, setWaiting] = useState<null | boolean>(null);
+  const [waiting, setWaiting] = useState<boolean>(false);
   const [opponentName, setOpponentName] = useState("");
   const [myTurn, setMyturn] = useState<boolean>(false);
   const [resignModal, setResignModal] = useState<boolean>(false);
@@ -63,8 +54,6 @@ const Game = () => {
   const [draw, setDraw] = useState(false);
   const [timeUpColor, setTimeUpColor] = useState("");
   const myColor = useRef<string | null>(null)
-  const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
-  const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
   const [winner, setWinner] = useState<null | string>(null);
   const [winnerModal, setWinnerModal] = useState<boolean>(false);
   const [gameLocked, setGameLocked] = useState(false);
@@ -90,7 +79,7 @@ const Game = () => {
       JSON.stringify({
         type: RESIGN,
         payload: {
-          color: myColor,
+          color: myColor.current,
         },
       })
     );
@@ -151,9 +140,9 @@ const Game = () => {
             setOpponentTimer(recoveredGame.player1.timeLeft)
             setOpponentName(recoveredGame.player1.name);
           }
-            const turn = newChess.turn();
-            setMyturn((turn === "w" && myColor.current === "white") || (turn === "b" && myColor.current === "black"));
-            setBoard(newChess.board());
+          const turn = newChess.turn();
+          setMyturn((turn === "w" && myColor.current === "white") || (turn === "b" && myColor.current === "black"));
+          setBoard(newChess.board());
 
           break;
 
@@ -165,7 +154,6 @@ const Game = () => {
           setWaiting(false);
           chessRef.current = new Chess();
           setBoard(chessRef.current.board());
-          setStarted(true);
           setOpponentName(name);
           setGameStart(true);
           gamestart();
@@ -181,11 +169,7 @@ const Game = () => {
           const blackTime = message.payload.black
 
           try {
-            const moveRes = chessRef.current.move(move);
-            setOpponentMoves((prev) => [
-              { piece: moveRes.piece, place: move.to },
-              ...prev,
-            ]);
+            chessRef.current.move(move);
             if (myColor.current === "white") {
               setMyTimer(whiteTime)
               setOpponentTimer(blackTime)
@@ -259,7 +243,7 @@ const Game = () => {
       socket.send(
         JSON.stringify({
           type: TIME_UP,
-          payload:{
+          payload: {
             color: myColor.current,
           }
         })
@@ -312,6 +296,10 @@ const Game = () => {
     );
   }
 
+  useEffect(() => {
+    console.log(chessRef.current.history())
+  }, [chessRef.current])
+
   if (!socket) return <div>Connecting......</div>;
   return (
     <div className="h-screen w-full bg-zinc-800 text-white">
@@ -343,42 +331,35 @@ const Game = () => {
         <div className="pt-8 w-full flex justify-center items-center">
           <div className="flex justify-center items-center w-full h-[95vh]">
             <div className="flex justify-center items-start flex-col px-12">
-              <UserMovesSection
-                moves={opponentMoves}
-                color={myColor.current === "black" ? "white" : "black"}
-              />
-              <OpponentDetails
-                name={opponentName ? opponentName : "Opponent"}
-                timer={opponentTimer}
-              />
-              <ChessBoard
-                gamelocked={gameLocked}
-                setBoard={setBoard}
-                chess={chessRef.current}
-                board={board}
-                socket={socket}
-                myColor={myColor.current as string}
-                setMyMoves={setMyMoves}
-              />
-              <UserDetails
-                color={myColor.current === "white" ? "w" : "b"}
-                onResign={onResign}
-                offerDraw={offerDraw}
-                myTimer={myTimer}
-              />
-              <UserMovesSection moves={myMoves} color={myColor.current as string} />
+              <div className="flex gap-x-5 h-full">
+                <div className="w-full">
+                  <OpponentDetails
+                    name={opponentName ? opponentName : "Opponent"}
+                    timer={opponentTimer}
+                  />
+                  <ChessBoard
+                    gamelocked={gameLocked}
+                    setBoard={setBoard}
+                    chess={chessRef.current}
+                    board={board}
+                    socket={socket}
+                    myColor={myColor.current as string}
+                  />
+                  <UserDetails
+                    color={myColor.current === "white" ? "w" : "b"}
+                    myTimer={myTimer}
+                  />
+                </div>
+
+                <div className="w-full h-full flex flex-col items-center">
+                  <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+                    <MoveHistory setWaiting={setWaiting} socket={socket} gameStarted={gameStart} moveHistory={chessRef.current.history()} offerDraw={offerDraw} onResign={onResign} waiting={waiting}/>
+                  </div>
+                </div>
+              </div>
             </div>
-            <SideMenu
-              // name={name}
-              setName={setName}
-              setWaiting={setWaiting}
-              waiting={waiting}
-              socket={socket}
-              started={started}
-            />
           </div>
         </div>
-        <Waiting waiting={waiting} />
       </div>
     </div>
   );

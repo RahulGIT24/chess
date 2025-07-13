@@ -4,13 +4,14 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setAuthenticated, setUser } from '../redux/reducers/userReducer';
+import { GAuth } from '../lib/types';
 
 const GoogleAuth = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
-  const googleAuth = async ({ credential, client_id }: { credential: string, client_id: string }) => {
+  const googleAuth = async ({ credential, client_id }: GAuth) => {
     try {
       const res = await apiCall({
         data: {

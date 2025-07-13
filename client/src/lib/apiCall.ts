@@ -1,12 +1,6 @@
 import axios from "axios"
-import toast from "react-hot-toast"
 import { refreshAccessToken } from "./refreshAccessToken"
-
-type apiCallParams = {
-    url: string,
-    data?: any,
-    method: string
-}
+import { apiCallParams } from "./types";
 
 export const apiCall = async ({ method, data={},url }: apiCallParams) => {
     const options = {

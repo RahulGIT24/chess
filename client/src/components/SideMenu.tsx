@@ -21,7 +21,7 @@ type SideMenuProps = {
 const SideMenu = ({ waiting, started, setWaiting, socket }: SideMenuProps) => {
 
     const [time, setTime] = useState<string>("10 M");
-    const options = ["10 M", "20 M", "30 M", "60 M"];
+    const options = ["1 M","10 M", "20 M", "30 M", "60 M"];
 
     const { user } = useSelector((state: RootState) => state.user);
 

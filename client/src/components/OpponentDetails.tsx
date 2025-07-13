@@ -1,10 +1,6 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-
-type UserDetailsProps = {
-  name?: string;
-  timer?: number;
-};
+import { UserDetailsProps } from "../lib/types";
 
 const OpponentDetails = ({
   name,
@@ -23,7 +19,7 @@ const OpponentDetails = ({
   };
 
   return (
-    <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
+    <div className="flex flex-row items-center justify-between gap-x-5  bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
         <img
           src="/user.png"

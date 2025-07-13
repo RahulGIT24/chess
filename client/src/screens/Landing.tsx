@@ -1,16 +1,15 @@
 import { useNavigate } from "react-router-dom"
-import Button from "../components/Button"
 import GoogleAuth from "../components/GoogleAuth"
 import { useAuth } from "../hooks/useAuth"
-import { v4 as uuidv4 } from "uuid"
-import { useDispatch } from "react-redux"
-import { setGuest, setUser } from "../redux/reducers/userReducer"
+// import { v4 as uuidv4 } from "uuid"
+// import { useDispatch } from "react-redux"
+// import { setGuest, setUser } from "../redux/reducers/userReducer"
 import { useEffect } from "react"
 
 const Landing = () => {
     const navigate = useNavigate()
     const [isAuthenticated] = useAuth()
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -18,22 +17,22 @@ const Landing = () => {
         }
     }, [isAuthenticated]);
 
-    const guest = () => {
-        const randomId = uuidv4().slice(0, 9);
-        const guestName = "GUEST_" + randomId
-        const user = {
-            id: null,
-            name: guestName,
-            profilePicture: null,
-            email: null
-        }
-        // console.log(user)
-        dispatch(setUser(user))
-        dispatch(setGuest(true));
-        setTimeout(() => {
-            navigate("/game?guest=true")
-        }, 100);
-    }
+    // const guest = () => {
+    //     const randomId = uuidv4().slice(0, 9);
+    //     const guestName = "GUEST_" + randomId
+    //     const user = {
+    //         id: null,
+    //         name: guestName,
+    //         profilePicture: null,
+    //         email: null
+    //     }
+    //     // console.log(user)
+    //     dispatch(setUser(user))
+    //     dispatch(setGuest(true));
+    //     setTimeout(() => {
+    //         navigate("/game?guest=true")
+    //     }, 100);
+    // }
 
     return (
         <div className="h-screen w-full flex justify-center items-center bg-zinc-800">

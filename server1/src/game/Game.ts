@@ -200,7 +200,7 @@ export class Game {
       "currentColor":this.currentColor
     }
     this.lastMoveTime = currentTimeinMil
-
+    
     if (this.player1.socket) {
       this.player1.socket.send(
         JSON.stringify({
@@ -280,7 +280,7 @@ export class Game {
   }
 
   timeUp(color: string, playerId: string) {
-    const winnerColor = color === "w" ? "black" : "white"
+    const winnerColor = color === "white" ? "black" : "white"
     if (this.player1.socket) {
       this.player1.socket.send(
         JSON.stringify({

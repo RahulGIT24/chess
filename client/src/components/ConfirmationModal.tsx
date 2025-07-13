@@ -1,15 +1,5 @@
+import { ConfimationProps } from "../lib/types"
 import Button from "./Button"
-
-interface ButtonArr {
-    text:string,
-    func:any,
-    className?:string
-}
-
-type ConfimationProps = {
-    text: string,
-    buttons: ButtonArr[]
-}
 
 const ConfirmationModal = ({ text, buttons }: ConfimationProps) => {
     return (

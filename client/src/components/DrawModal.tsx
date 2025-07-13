@@ -1,6 +1,7 @@
+import { type DrawModal } from '../lib/types'
 import ConfirmationModal from './ConfirmationModal'
 
-const DrawModal = ({drawModal,drawAccept,drawReject}:{drawModal:boolean,drawAccept:()=>void,drawReject:()=>void}) => {
+const DrawModal = ({drawModal,drawAccept,drawReject}:DrawModal) => {
     return (
         <div>{drawModal && (
             <ConfirmationModal

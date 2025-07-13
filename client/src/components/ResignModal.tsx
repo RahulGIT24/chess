@@ -1,6 +1,7 @@
+import {type ResignModal } from '../lib/types'
 import ConfirmationModal from './ConfirmationModal'
 
-const ResignModal = ({ resignModal, onResignConfirm, closeResignModal }: { resignModal: boolean, onResignConfirm: () => void, closeResignModal: () => void }) => {
+const ResignModal = ({ resignModal, onResignConfirm, closeResignModal }: ResignModal) => {
     return (
         <div>{resignModal && (
             <ConfirmationModal
