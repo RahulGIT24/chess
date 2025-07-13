@@ -1,22 +1,14 @@
 import { useSelector } from "react-redux";
-import Button from "./Button";
 import { RootState } from "../redux/store";
 
 type UserDetailsProps = {
   name?: string;
-  color: string;
-  onResign: () => void;
-  offerDraw: () => void;
-  opponentTimer?: number;
-  myTimer?: number;
+  timer?: number;
 };
 
-const UserDetails = ({
+const OpponentDetails = ({
   name,
-  onResign,
-  opponentTimer,
-  myTimer,
-  offerDraw,
+  timer,
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -30,9 +22,6 @@ const UserDetails = ({
     return `${minutes}:${seconds}`;
   };
 
-  // Display whichever timer is passed
-  const displayTimer = myTimer ?? opponentTimer;
-
   return (
     <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
@@ -45,19 +34,11 @@ const UserDetails = ({
           <p className="font-serif font-semibold text-xl">
             {name ? name : user?.name}
           </p>
-          <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(displayTimer)}</p>
+          <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(timer)}</p>
         </div>
-      </div>
-      <div>
-        {offerDraw && (
-          <Button onClick={offerDraw} classname="mx-4">
-            Offer Draw
-          </Button>
-        )}
-        {onResign && <Button onClick={onResign}>Resign</Button>}
       </div>
     </div>
   );
 };
 
-export default UserDetails;
+export default OpponentDetails;

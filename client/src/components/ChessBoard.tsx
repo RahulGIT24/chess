@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import PromotionModal from "./PromotionModal";
 import { ERROR, MOVE } from "../constants/messages";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
 
 type ChessBoardProps = {
   board: ({
@@ -17,7 +15,6 @@ type ChessBoardProps = {
   chess: any;
   myColor: string;
   setMyMoves: any;
-  setMyTurn: any
   gamelocked:boolean
 }
 
@@ -29,7 +26,6 @@ const ChessBoard = ({
   myColor = "white",
   setMyMoves,
   gamelocked,
-  setMyTurn
 }: ChessBoardProps) => {
   const [from, setFrom] = useState<Square | null>(null);
   const [promotion, setPromotion] = useState<{
@@ -38,14 +34,11 @@ const ChessBoard = ({
   } | null>(null);
   const [to, setTo] = useState<Square | null>(null);
   const {
-    castle,
     move: pieceMove,
     promote: piecePromote,
     error: errSound,
     capture,
   } = useSoundEffects();
-
-  const { myTimer } = useSelector((state: RootState) => state.time);
 
   const isMyPiece = (square: Square | null) => {
     const piece = board.flat().find((cell) => cell?.square === square);
@@ -82,7 +75,6 @@ const ChessBoard = ({
             from: from,
             to: to,
             promotion: piece,
-            timer:myTimer
           },
         },
       })
@@ -126,13 +118,11 @@ const ChessBoard = ({
           setPromotion(move);
         } else {
           // Regular move logic
-          setMyTurn(false);
           socket.send(
             JSON.stringify({
               type: MOVE,
               payload: {
                 move: move,
-                timer:myTimer
               },
             })
           );

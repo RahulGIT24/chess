@@ -7,7 +7,6 @@ import SideMenu from "../components/SideMenu";
 import UserDetails from "../components/UserDetails";
 import UserMovesSection from "../components/UserMovesSection";
 import WinnerModal from "../components/WinnerModal";
-import ConfirmationModal from "../components/ConfirmationModal";
 import Draw from "../components/Draw";
 import {
   DRAW,
@@ -26,9 +25,13 @@ import {
 } from "../constants/messages";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ReconnectingModal from "../components/ReconnectingModal";
+import OpponentDetails from "../components/OpponentDetails";
+import Waiting from "./Waiting";
+import ResignModal from "../components/ResignModal";
+import DrawModal from "../components/DrawModal";
 
 export interface UserMoves {
   piece: string;
@@ -37,7 +40,9 @@ export interface UserMoves {
 
 const Game = () => {
   const [isAuthenticated] = useAuth();
+
   const navigate = useNavigate();
+
   const { user } = useSelector((state: RootState) => state.user);
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,23 +51,18 @@ const Game = () => {
   }, [isAuthenticated]);
 
   const socket = useSocket();
-  // const [chess, setChess] = useState(new Chess());
   const chessRef = useRef<Chess>(new Chess());
   const [board, setBoard] = useState(chessRef.current.board());
-
   const [started, setStarted] = useState(false);
   const [name, setName] = useState("");
   const [waiting, setWaiting] = useState<null | boolean>(null);
   const [opponentName, setOpponentName] = useState("");
-  const [time, setTime] = useState<number | null>(null);
   const [myTurn, setMyturn] = useState<boolean>(false);
-  const [currentTurn, setCurrentTurn] = useState<null | string>(null);
-
   const [resignModal, setResignModal] = useState<boolean>(false);
   const [resignedColor, setResignedColor] = useState("");
   const [draw, setDraw] = useState(false);
   const [timeUpColor, setTimeUpColor] = useState("");
-  const [myColor, setMyColor] = useState("");
+  const myColor = useRef<string | null>(null)
   const [opponentMoves, setOpponentMoves] = useState<UserMoves[]>([]);
   const [myMoves, setMyMoves] = useState<UserMoves[]>([]);
   const [winner, setWinner] = useState<null | string>(null);
@@ -70,11 +70,10 @@ const Game = () => {
   const [gameLocked, setGameLocked] = useState(false);
   const [drawModal, setDrawModal] = useState(false);
   const [gameStart, setGameStart] = useState(false);
-
   const [myTimer, setMyTimer] = useState<number>();
   const [opponentTimer, setOpponentTimer] = useState<number>();
-
   const [reconnecting, setReconnecting] = useState(false);
+  const [drawAccepted, setDrawAccepted] = useState(false);
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
@@ -142,23 +141,19 @@ const Game = () => {
           setBoard(newChess.board());
 
           if (user?.id === recoveredGame.player1.id) {
-            setMyColor(recoveredGame.player1.color);
+            myColor.current = recoveredGame.player1.color;
             setMyTimer(recoveredGame.player1.timeLeft);
             setOpponentTimer(recoveredGame.player2.timeLeft);
             setOpponentName(recoveredGame.player2.name);
           } else {
-            setMyColor(recoveredGame.player2.color);
+            myColor.current = recoveredGame.player2.color;
             setMyTimer(recoveredGame.player2.timeLeft)
             setOpponentTimer(recoveredGame.player1.timeLeft)
             setOpponentName(recoveredGame.player1.name);
           }
-
-          setTimeout(() => {
             const turn = newChess.turn();
-            setMyturn((turn === "w" && myColor === "white") || (turn === "b" && myColor === "black"));
-            setCurrentTurn(turn);
+            setMyturn((turn === "w" && myColor.current === "white") || (turn === "b" && myColor.current === "black"));
             setBoard(newChess.board());
-          }, 100); // Give React some time to update
 
           break;
 
@@ -174,7 +169,7 @@ const Game = () => {
           setOpponentName(name);
           setGameStart(true);
           gamestart();
-          setMyColor(color)
+          myColor.current = color
           setMyturn(color === "white")
           setMyTimer(timer)
           setOpponentTimer(timer)
@@ -191,7 +186,7 @@ const Game = () => {
               { piece: moveRes.piece, place: move.to },
               ...prev,
             ]);
-            if (myColor === "white") {
+            if (myColor.current === "white") {
               setMyTimer(whiteTime)
               setOpponentTimer(blackTime)
             } else {
@@ -200,7 +195,8 @@ const Game = () => {
             }
             pieceMove();
             setBoard(chessRef.current.board());
-            setMyturn(currentColor === myColor);
+            setMyturn(currentColor === myColor.current);
+
           } catch (error) {
             console.log(error)
           }
@@ -227,6 +223,7 @@ const Game = () => {
 
         case OFFER_ACCEPTED:
           setDraw(true);
+          setDrawAccepted(true);
           setGameLocked(true);
           setDrawModal(false);
           break;
@@ -238,6 +235,7 @@ const Game = () => {
         case DRAW_OFFERED:
           setDrawModal(true);
           break;
+
         case TIME_UP:
           setGameLocked(true);
           setWinnerModal(true);
@@ -254,23 +252,40 @@ const Game = () => {
   }, [socket]);
 
   useEffect(() => {
+    if (myTimer === 0) {
+      if (!socket) return;
+      setGameLocked(true);
+      setWinnerModal(true);
+      socket.send(
+        JSON.stringify({
+          type: TIME_UP,
+          payload:{
+            color: myColor.current,
+          }
+        })
+      );
+    }
+  }, [myTimer])
+
+  useEffect(() => {
+    if (drawAccepted) return;
+    if (winnerModal) return;
     const interval = setInterval(() => {
       if (myTurn) {
         setMyTimer((prev) => {
-          const updated = Math.max(0, prev - 1000);
+          const updated = Math.max(0, (prev as number) - 1000);
           return updated;
         });
       } else {
         setOpponentTimer((prev) => {
-          const updated = Math.max(0, prev - 1000);
+          const updated = Math.max(0, (prev as number) - 1000);
           return updated;
         });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [myTurn]);
-
+  }, [myTurn, drawAccepted, winnerModal]);
 
   const drawAccept = () => {
     if (gameLocked) return;
@@ -282,7 +297,9 @@ const Game = () => {
         },
       })
     );
+    setDrawAccepted(true);
   };
+
   const drawReject = () => {
     if (gameLocked) return;
     socket?.send(
@@ -293,12 +310,7 @@ const Game = () => {
         },
       })
     );
-  };
-
-  useEffect(() => {
-    setCurrentTurn(myTurn ? myColor : myColor === "white" ? "black" : "white");
-  }, [myTurn]);
-
+  }
 
   if (!socket) return <div>Connecting......</div>;
   return (
@@ -312,7 +324,7 @@ const Game = () => {
           <WinnerModal
             winner={winner as string}
             closeModal={closeWinnerModal}
-            myColor={myColor}
+            myColor={myColor.current as string}
             opponentName={opponentName}
             resignedColor={resignedColor as string}
             timeUpColor={timeUpColor}
@@ -325,48 +337,19 @@ const Game = () => {
           }}
         />
       )}
-      {resignModal && (
-        <ConfirmationModal
-          text="Do You want to Resign?"
-          buttons={[
-            {
-              text: "Yes",
-              func: onResignConfirm,
-            },
-            {
-              text: "No",
-              func: closeResignModal,
-            },
-          ]}
-        />
-      )}
-      {drawModal && (
-        <ConfirmationModal
-          text="Opponent Offered Draw"
-          buttons={[
-            {
-              text: "Accept",
-              func: drawAccept,
-            },
-            {
-              text: "Reject",
-              func: drawReject,
-            },
-          ]}
-        />
-      )}
+      <ResignModal resignModal={resignModal} closeResignModal={closeResignModal} onResignConfirm={onResignConfirm} />
+      <DrawModal drawModal={drawModal} drawAccept={drawAccept} drawReject={drawReject} />
       <div className="justify-center flex">
         <div className="pt-8 w-full flex justify-center items-center">
           <div className="flex justify-center items-center w-full h-[95vh]">
             <div className="flex justify-center items-start flex-col px-12">
               <UserMovesSection
                 moves={opponentMoves}
-                color={myColor === "black" ? "white" : "black"}
+                color={myColor.current === "black" ? "white" : "black"}
               />
-              <UserDetails
+              <OpponentDetails
                 name={opponentName ? opponentName : "Opponent"}
-                color={myColor === "white" ? "b" : "w"}
-                opponentTimer={opponentTimer}
+                timer={opponentTimer}
               />
               <ChessBoard
                 gamelocked={gameLocked}
@@ -374,17 +357,16 @@ const Game = () => {
                 chess={chessRef.current}
                 board={board}
                 socket={socket}
-                myColor={myColor}
+                myColor={myColor.current as string}
                 setMyMoves={setMyMoves}
-                setMyTurn={setMyturn}
               />
               <UserDetails
-                color={myColor === "white" ? "w" : "b"}
-                onResign={opponentName ? onResign : null}
-                offerDraw={opponentName ? offerDraw : null}
+                color={myColor.current === "white" ? "w" : "b"}
+                onResign={onResign}
+                offerDraw={offerDraw}
                 myTimer={myTimer}
               />
-              <UserMovesSection moves={myMoves} color={myColor} />
+              <UserMovesSection moves={myMoves} color={myColor.current as string} />
             </div>
             <SideMenu
               // name={name}
@@ -396,12 +378,7 @@ const Game = () => {
             />
           </div>
         </div>
-        {waiting === true && (
-          <div className="w-full flex justify-center items-center flex-col gap-y-5">
-            <img src="/waiting.gif" alt="waiting" />
-            <p className="font-bold text-2xl">Finding Players......</p>
-          </div>
-        )}
+        <Waiting waiting={waiting} />
       </div>
     </div>
   );
