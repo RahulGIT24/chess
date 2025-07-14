@@ -111,6 +111,7 @@ const Game = () => {
         case RECONNECTED:
           setReconnecting(false);
           setWaiting(false);
+          setGameStart(true)
 
           const recoveredGame = message.payload.game;
           console.log("Restored FEN:", recoveredGame.fen);

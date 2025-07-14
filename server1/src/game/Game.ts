@@ -330,7 +330,6 @@ export class Game {
 
   async saveGame() {
     const gameKey = `game:${this.id}`;
-    console.log(this.player1.name, this.player2.name);
     const gameState = {
       id: this.id,
       player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color: this.player1.color, name: this.player1.name },

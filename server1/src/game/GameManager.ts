@@ -31,24 +31,37 @@ export class GameManager {
         let game = this.games.find(g => g.player1.id === id || g.player2.id === id);
 
         if (game) {
-
-
-
             if (game.player1.id === id) {
                 game.player1.socket = socket;
             } else {
                 game.player2.socket = socket;
             }
 
+            const currentTimeinMil = Date.now()
+            const lastMoveTime = game.lastMoveTime
+
+            const diff = currentTimeinMil - lastMoveTime
+
+            const player1Color = game.player1.color
+            const currentColor = game.currentColor
+
+            let player1Time = game.player1.timeLeft
+            let player2Time = game.player2.timeLeft
+
+            if (currentColor === player1Color) {
+                player1Time = Math.max(0, player1Time - diff);
+            } else {
+                player2Time = Math.max(0, player2Time - diff);
+            }
+
             const gameState = {
                 id: game.id,
-                player1: { id: game.player1.id, timeLeft: game.player1.timeLeft, color: game.player1.color, name: game.player1.name },
-                player2: { id: game.player2.id, timeLeft: game.player2.timeLeft, color: game.player2.color, name: game.player2.name },
+                player1: { id: game.player1.id, timeLeft: player1Time, color: game.player1.color, name: game.player1.name },
+                player2: { id: game.player2.id, timeLeft: player2Time, color: game.player2.color, name: game.player2.name },
                 fen: game.board.fen(),
                 pgn: game.board.pgn(),
-                // moveCount: game.moveCount,
                 offerState: game.offerState,
-                // matchTime: game.timeString
+                lastMoveTime: game.lastMoveTime
             }
 
             socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: gameState, message: "Game Recovered from memory" } }));
@@ -74,18 +87,21 @@ export class GameManager {
             redis.get(gameIdKey).then(async (game) => {
                 if (game) {
                     const parsedData = JSON.parse(game);
-                    console.log(parsedData);
                     if (parsedData) {
+
                         const player1Socket = this.users.find(user => user.id === parsedData.player1.id);
                         const player2Socket = this.users.find(user => user.id === parsedData.player2.id);
 
                         if (player1Socket && player2Socket) {
-                            const game = await this.recoverGame(parsedData.id, player1Socket.socket, player2Socket.socket);
+                            const res = await this.recoverGame(parsedData, player1Socket.socket, player2Socket.socket);
+                            const game = res?.game
+                            const data = res?.parsedData
+
                             if (game) {
                                 this.games.push(game);
                             }
-                            player1Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: parsedData, message: "Game Recovered" } }))
-                            player2Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: parsedData, message: "Game Recovered" } }))
+                            player1Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: data, message: "Game Recovered" } }))
+                            player2Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: data, message: "Game Recovered" } }))
                             this.addHandler(player1Socket.socket);
                             this.addHandler(player2Socket.socket);
                         } else {
@@ -148,7 +164,7 @@ export class GameManager {
                     const player1Color = randomWhite ? "white" : "black";
                     const player2Color = randomWhite ? "black" : "white";
                     const pendingCopy: Pending = { ...pendingUser, color: player2Color }
-                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color }, time, id,Date.now(),"white")
+                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color }, time, id, Date.now(), "white")
                     this.games.push(game);
                 } else {
                     GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid })
@@ -200,7 +216,8 @@ export class GameManager {
         })
     }
 
-    async recoverGame(gameId: string, socket1: WebSocket, socket2: WebSocket) {
+    async recoverGame(parsedData: any, socket1: WebSocket, socket2: WebSocket) {
+        const gameId = parsedData.id
         const gameKey = `game:${gameId}`
         const gameData = await redis.get(gameKey);
 
@@ -237,22 +254,41 @@ export class GameManager {
         })
 
         if (!player1Name || !player2Name) return null;
+        const currentTimeinMil = Date.now()
+        const lastMoveTime = parsedGame.lastMoveTime
+
+        const diff = currentTimeinMil - lastMoveTime
+
+        const player1Color = parsedGame.player1.color
+        const currentColor = parsedGame.currentColor
+
+        let player1Time = parsedGame.player1.timeLeft
+        let player2Time = parsedGame.player2.timeLeft
+
+        if (currentColor === player1Color) {
+            player1Time = Math.max(0, player1Time - diff);
+        } else {
+            player2Time = Math.max(0, player2Time - diff);
+        }
+
+        parsedData.player1.timeLeft = player1Time
+        parsedData.player2.timeLeft = player2Time
 
         const game = new Game(
-            { socket: socket1, name: player1Name?.name, timeLeft: parsedGame.player1.timeLeft, id: parsedGame.player1.id, color: parsedGame.player1.color },
-            { socket: socket2, name: player2Name.name, timeLeft: parsedGame.player2.timeLeft, id: parsedGame.player2.id, color: parsedGame.player2.color },
+            { socket: socket1, name: player1Name?.name, timeLeft: player1Time, id: parsedGame.player1.id, color: parsedGame.player1.color },
+            { socket: socket2, name: player2Name.name, timeLeft: player2Time, id: parsedGame.player2.id, color: parsedGame.player2.color },
             parsedGame.matchTime,
             parsedGame.id,
             parsedGame.lastMoveTime,
             parsedGame.currentColor
         );
 
-        game.setBoard(parsedGame.board);
+        game.setBoard(parsedGame.fen);
         if (parsedGame.offerState) {
             game.setOfferState();
         } else {
             game.resetOfferState();
         }
-        return game;
+        return { game, parsedData };
     }
 }
