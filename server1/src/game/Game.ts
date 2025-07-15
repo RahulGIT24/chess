@@ -4,10 +4,13 @@ import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, 
 import { moveValidator } from "../lib/validators";
 import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
+import { computeLeftTime } from "../lib/timeCompute";
+import { Player } from "../types/types";
+import { EventEmitter } from "events";
 
-export class Game {
-  public player1: { socket: WebSocket | null, id: string, timeLeft: number, name: string | null, color: "black" | "white" };
-  public player2: { socket: WebSocket | null, id: string, timeLeft: number, name: string | null, color: "black" | "white" };
+export class Game extends EventEmitter {
+  public player1: Player;
+  public player2: Player;
   public board: Chess;
   public startTime: Date;
   public offerState: boolean
@@ -15,24 +18,27 @@ export class Game {
   public static gameDBController = new GameSave()
   public currentColor: string
   public lastMoveTime: number
+  public initialTime: number
 
   constructor(
-    player1: { socket: WebSocket | null; name: string; timeLeft: number, id: string, color: "white" | "black" },
-    player2: { socket: WebSocket | null; name: string; timeLeft: number, id: string, color: "white" | "black" },
+    player1: Player,
+    player2: Player,
     initialTime: number,
     id: string,
-    lastMoveTime:number,
-    currentColor:string
+    lastMoveTime: number,
+    currentColor: string
   ) {
-    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: player1.timeLeft, name: player1.name, color: player1.color };
-    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: player2.timeLeft, name: player2.name, color: player2.color };
+    super()
+    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: player1.timeLeft, name: player1.name, color: player1.color, profilePicture: player1.profilePicture };
+    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: player2.timeLeft, name: player2.name, color: player2.color, profilePicture: player2.profilePicture };
     this.offerState = false
     this.board = new Chess();
     this.startTime = new Date();
     this.id = id;
     Game.gameDBController.setid(id)
-    this.currentColor =currentColor
+    this.currentColor = currentColor
     this.lastMoveTime = lastMoveTime;
+    this.initialTime = initialTime
 
     if (!this.player1.socket || !this.player2.socket) return;
 
@@ -43,6 +49,7 @@ export class Game {
           name: player2.name,
           timer: initialTime,
           color: player1.color,
+          profilePicture: player2.profilePicture
         },
       })
     );
@@ -54,14 +61,27 @@ export class Game {
           name: player1.name,
           timer: initialTime,
           color: player2.color,
+          profilePicture: player1.profilePicture
         },
       })
     );
 
+    let white: any = ""
+    let black: any = ""
+    if (this.player1.color === "white") {
+      white = this.player1
+      black = this.player2
+    } else {
+      white = this.player2
+      black = this.player1
+    }
+
     Game.gameDBController.initGameSave({
       id: this.id,
-      player1: player1.id,
-      player2: player2.id,
+      whiteId: white.id,
+      blackId: black.id,
+      whiteTimeLeft: white.timeLeft,
+      blackTimeLeft: black.timeLeft,
       duration: initialTime
     }).catch(e => (console.log(e)))
   }
@@ -86,28 +106,6 @@ export class Game {
       return;
     }
 
-    if (socket === this.player2.socket && this.player2.color != this.currentColor) {
-      socket.send(
-        JSON.stringify({
-          type: ERROR,
-          payload: { message: "It's not your turn" },
-        })
-      );
-      console.log("Not Your Turn")
-      return;
-    }
-
-    if (socket === this.player1.socket && this.player1.color != this.currentColor) {
-      socket.send(
-        JSON.stringify({
-          type: ERROR,
-          payload: { message: "It's not your turn" },
-        })
-      );
-      console.log("Not Your Turn")
-      return;
-    }
-
     try {
       const piece = this.board.get(move.from as Square)?.type;
       if (piece === "p" && (move.to.endsWith("8") || move.to.endsWith("1"))) {
@@ -120,9 +118,67 @@ export class Game {
           );
           return;
         }
-        this.board.move(move);
-      } else {
-        this.board.move(move);
+      }
+
+      const moved = this.board.move(move);
+
+      if (!moved) {
+        throw new Error("Invalid Move")
+      }
+
+      this.emitMove(move)
+
+      if (this.board.isGameOver()) {
+        const winnerColor = this.board.turn() === "w" ? "black" : "white";
+        if (this.player1.socket) {
+          this.player1.socket.send(
+            JSON.stringify({
+              type: GAME_OVER,
+              payload: {
+                winner: winnerColor
+              },
+            })
+          );
+        }
+        if (this.player2.socket) {
+          this.player2.socket.send(
+            JSON.stringify({
+              type: GAME_OVER,
+              payload: {
+                winner: winnerColor
+              },
+            })
+          );
+        }
+        let winnerId = null;
+        if (winnerColor === this.player1.color) {
+          winnerId = this.player1.id
+        } else {
+          winnerId = this.player2.id
+        }
+        Game.gameDBController.handleWin(winnerId, this.board.fen(),this.board.history().length).catch(e => console.log(e))
+        this.emit("removeGame", this.id);
+        return;
+      }
+
+      if (this.board.isDraw()) {
+        if (this.player1.socket) {
+          this.player1.socket.send(
+            JSON.stringify({
+              type: DRAW,
+            })
+          );
+        }
+        if (this.player2.socket) {
+          this.player2.socket.send(
+            JSON.stringify({
+              type: DRAW,
+            })
+          );
+        }
+        Game.gameDBController.handleDraw(this.board.fen(),this.board.history().length).catch(e => console.log(e))
+        this.emit("removeGame", this.id)
+        return;
       }
     } catch (error) {
       socket.send(
@@ -134,73 +190,23 @@ export class Game {
       console.log(error)
       return;
     }
+  }
 
-    if (this.board.isGameOver()) {
-      const winnerColor = this.board.turn() === "w" ? "black" : "white";
-      if (this.player1.socket) {
-        this.player1.socket.send(
-          JSON.stringify({
-            type: GAME_OVER,
-            payload: {
-              winner: winnerColor
-            },
-          })
-        );
-      }
-      if (this.player2.socket) {
-        this.player2.socket.send(
-          JSON.stringify({
-            type: GAME_OVER,
-            payload: {
-              winner: winnerColor
-            },
-          })
-        );
-      }
-      const winnerId = winnerColor === "black" ? this.player1.id : this.player2.id;
-      Game.gameDBController.handleWin(winnerId).catch(e => console.log(e))
-    }
-
-    if (this.board.isDraw()) {
-      if (this.player1.socket) {
-        this.player1.socket.send(
-          JSON.stringify({
-            type: DRAW,
-          })
-        );
-      }
-      if (this.player2.socket) {
-        this.player2.socket.send(
-          JSON.stringify({
-            type: DRAW,
-          })
-        );
-      }
-      Game.gameDBController.handleDraw().catch(e => console.log(e))
-    }
-    // Elasped time in milliseconds
-    const currentTimeinMil = Date.now()
-    const diffTimeinMil = currentTimeinMil - this.lastMoveTime
-
-    // If current turn is white I will update current's white time whiteLastMoveTime - elasped
-    if (this.currentColor === this.player1.color) {
-      this.player1.timeLeft = Math.max(0, this.player1.timeLeft - diffTimeinMil)
-    }
-
-    // If current turn is black I will update current's black time by blackLastMoveTime - elasped
-    if (this.currentColor === this.player2.color) {
-      this.player2.timeLeft = Math.max(0, this.player2.timeLeft - diffTimeinMil)
-    }
+  async emitMove(move: any) {
+    const currentTimeinMil = Date.now();
+    const { p1, p2 } = computeLeftTime(this.lastMoveTime, this.player1.color, this.currentColor, this.player1.timeLeft, this.player2.timeLeft)
+    this.player1.timeLeft = p1;
+    this.player2.timeLeft = p2;
 
     this.currentColor = this.currentColor === "white" ? "black" : "white"
     const payload = {
       move: move,
-      "white":this.player1.color === "white" ? this.player1.timeLeft : this.player2.timeLeft,
-      "black":this.player1.color === "black" ? this.player1.timeLeft : this.player2.timeLeft,
-      "currentColor":this.currentColor
+      "white": this.player1.color === "white" ? this.player1.timeLeft : this.player2.timeLeft,
+      "black": this.player1.color === "black" ? this.player1.timeLeft : this.player2.timeLeft,
+      "currentColor": this.currentColor
     }
     this.lastMoveTime = currentTimeinMil
-    
+
     if (this.player1.socket) {
       this.player1.socket.send(
         JSON.stringify({
@@ -218,7 +224,6 @@ export class Game {
         })
       );
     }
-
     await this.saveGame();
   }
 
@@ -259,7 +264,8 @@ export class Game {
         })
       );
     }
-    Game.gameDBController.handleDraw().catch(e => console.log(e));
+    Game.gameDBController.handleDraw(this.board.fen(),this.board.history().length).catch(e => console.log(e));
+    this.emit("removeGame", this.id)
   }
 
   drawRejected() {
@@ -297,7 +303,7 @@ export class Game {
         })
       );
     }
-    Game.gameDBController.handleWin(playerId).catch(e => console.log(e))
+    Game.gameDBController.handleWin(playerId, this.board.fen(),this.board.history().length).catch(e => console.log(e))
   }
 
   setOfferState() {
@@ -325,26 +331,41 @@ export class Game {
         })
       );
     }
-    Game.gameDBController.handleResign(id).catch(e => console.log(e))
+    Game.gameDBController.handleResign(id, this.board.fen(),this.board.history().length).catch(e => console.log(e))
   }
 
   async saveGame() {
     const gameKey = `game:${this.id}`;
     const gameState = {
       id: this.id,
-      player1: { id: this.player1.id, timeLeft: this.player1.timeLeft, color: this.player1.color, name: this.player1.name },
-      player2: { id: this.player2.id, timeLeft: this.player2.timeLeft, color: this.player2.color, name: this.player1.name },
+      player1: {
+        id: this.player1.id,
+        timeLeft: this.player1.timeLeft,
+        color: this.player1.color,
+        name: this.player1.name,
+        profilePicture: this.player1.profilePicture
+      },
+      player2: {
+        id: this.player2.id,
+        timeLeft: this.player2.timeLeft,
+        color: this.player2.color,
+        name: this.player2.name,
+        profilePicture: this.player2.profilePicture
+      },
       fen: this.board.fen(),
       pgn: this.board.pgn(),
       offerState: this.offerState,
-      currentColor: this.currentColor,
+      currentColor: this.board.turn() === "w" ? "white" : "black",
       lastMoveTime: this.lastMoveTime,
-    }
+      matchTime: this.initialTime
+    };
     await redis.set(gameKey, JSON.stringify(gameState));
     await redis.expire(gameKey, 3600);
   }
 
-  setBoard(board: string) {
-    this.board.load(board);
+  setBoard(fen: string, pgn: string) {
+    const chess = new Chess(fen);
+    this.board = chess
+    console.log("Board", this.board)
   }
 }

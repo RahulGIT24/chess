@@ -8,6 +8,7 @@ import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
 import { prisma } from "../lib/prisma";
 import { Pending } from "../types/types";
+import { computeLeftTime } from "../lib/timeCompute";
 
 interface User {
     socket: WebSocket,
@@ -36,28 +37,20 @@ export class GameManager {
             } else {
                 game.player2.socket = socket;
             }
-
-            const currentTimeinMil = Date.now()
-            const lastMoveTime = game.lastMoveTime
-
-            const diff = currentTimeinMil - lastMoveTime
-
             const player1Color = game.player1.color
-            const currentColor = game.currentColor
 
             let player1Time = game.player1.timeLeft
             let player2Time = game.player2.timeLeft
 
-            if (currentColor === player1Color) {
-                player1Time = Math.max(0, player1Time - diff);
-            } else {
-                player2Time = Math.max(0, player2Time - diff);
-            }
+            const { p1, p2 } = computeLeftTime(game.lastMoveTime, player1Color, game.currentColor, player1Time, player2Time)
+
+            player1Time = p1;
+            player2Time = p2
 
             const gameState = {
                 id: game.id,
-                player1: { id: game.player1.id, timeLeft: player1Time, color: game.player1.color, name: game.player1.name },
-                player2: { id: game.player2.id, timeLeft: player2Time, color: game.player2.color, name: game.player2.name },
+                player1: { id: game.player1.id, timeLeft: player1Time, color: game.player1.color, name: game.player1.name, profilePicture: game.player1.profilePicture },
+                player2: { id: game.player2.id, timeLeft: player2Time, color: game.player2.color, name: game.player2.name, profilePicture: game.player2.profilePicture },
                 fen: game.board.fen(),
                 pgn: game.board.pgn(),
                 offerState: game.offerState,
@@ -73,16 +66,19 @@ export class GameManager {
         const dbgame = await prisma.game.findFirst({
             where: {
                 OR: [
-                    { player1: id },
-                    { player2: id }
-                ]
+                    { whiteId: id },
+                    { blackId: id }
+                ],
+                winner: null,
+                draw: false,
+                resign: null
             },
             orderBy: {
                 createdAt: 'desc',
             },
         })
 
-        if (dbgame && dbgame.draw == false && dbgame.winner == null) {
+        if (dbgame) {
             const gameIdKey = `game:${dbgame.id}`
             redis.get(gameIdKey).then(async (game) => {
                 if (game) {
@@ -111,16 +107,17 @@ export class GameManager {
                     }
                 }
             });
-        } else {
-            this.addHandler(socket);
-            return;
         }
+        this.addHandler(socket);
+        return;
     }
 
     removeUser(socket: WebSocket) {
+        GameManager.pendingUser.deque({ socket: socket })
         this.users = this.users.filter(user => user.socket !== socket)
         const game = this.games.find(g => g.player1.socket === socket || g.player2.socket === socket);
         if (!game) return;
+
         if (game.player1.socket === socket) {
             game.player1.socket = null;
             if (game.player2.socket) {
@@ -140,8 +137,9 @@ export class GameManager {
             const username = message.name;
             if (message.type === INIT_GAME) {
                 const userid = message.id
+                const profilePicture = message.profilePicture
                 const time = minutesToMilliseconds(message.time) as number;
-                const pendingUser = GameManager.pendingUser?.deque(time, userid);
+                const pendingUser = GameManager.pendingUser?.deque({ userId: userid, time });
 
                 const game = this.games.find(game => game.player1.id === userid || game.player2.id === userid)
                 if (game) {
@@ -164,15 +162,19 @@ export class GameManager {
                     const player1Color = randomWhite ? "white" : "black";
                     const player2Color = randomWhite ? "black" : "white";
                     const pendingCopy: Pending = { ...pendingUser, color: player2Color }
-                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color }, time, id, Date.now(), "white")
+                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color, profilePicture: profilePicture }, time, id, Date.now(), "white")
+                    // event to remove game
+                    game.on("removeGame", async (gameId: string) => {
+                        console.log(`Event received: removeGame for gameId=${gameId}`);
+                        await this.removeGame(gameId);
+                    });
                     this.games.push(game);
                 } else {
-                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid })
+                    GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid, profilePicture: profilePicture })
                 }
             }
 
             if (message.type === MOVE) {
-                console.log("Moved")
                 const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 if (game) {
                     game.makeMove(socket, message.payload.move, parseInt(message.payload.timer))
@@ -184,6 +186,8 @@ export class GameManager {
                 const id = game?.player1.socket === socket ? game.player1.id : game?.player2.id as string
                 if (game) {
                     game.resign(message.payload.color, id)
+                    // Remove game from list and redis
+                    this.removeGame(game.id)
                 }
             }
 
@@ -200,6 +204,8 @@ export class GameManager {
                 if (game?.offerState) {
                     if (draw) {
                         game.drawAccepted();
+                        // Remove game from list and redis
+                        this.removeGame(game.id)
                     } else {
                         game.drawRejected();
                     }
@@ -211,6 +217,8 @@ export class GameManager {
                 if (game) {
                     const winner = game.player1.socket === socket ? game.player2.id : game.player1.id
                     game.timeUp(message.payload.color, winner);
+                    // Remove game from list and redis
+                    this.removeGame(game.id)
                 }
             }
         })
@@ -241,7 +249,8 @@ export class GameManager {
                 id: parsedGame.player1.id
             },
             select: {
-                name: true
+                name: true,
+                profilePicture: true
             }
         })
         const player2Name = await prisma.user.findFirst({
@@ -249,7 +258,8 @@ export class GameManager {
                 id: parsedGame.player2.id
             },
             select: {
-                name: true
+                name: true,
+                profilePicture: true
             }
         })
 
@@ -260,35 +270,52 @@ export class GameManager {
         const diff = currentTimeinMil - lastMoveTime
 
         const player1Color = parsedGame.player1.color
-        const currentColor = parsedGame.currentColor
 
         let player1Time = parsedGame.player1.timeLeft
         let player2Time = parsedGame.player2.timeLeft
 
-        if (currentColor === player1Color) {
-            player1Time = Math.max(0, player1Time - diff);
-        } else {
-            player2Time = Math.max(0, player2Time - diff);
-        }
 
         parsedData.player1.timeLeft = player1Time
         parsedData.player2.timeLeft = player2Time
 
         const game = new Game(
-            { socket: socket1, name: player1Name?.name, timeLeft: player1Time, id: parsedGame.player1.id, color: parsedGame.player1.color },
-            { socket: socket2, name: player2Name.name, timeLeft: player2Time, id: parsedGame.player2.id, color: parsedGame.player2.color },
-            parsedGame.matchTime,
+            { socket: socket1, name: player1Name?.name, timeLeft: player1Time, id: parsedGame.player1.id, color: parsedGame.player1.color, profilePicture: player1Name.profilePicture },
+            { socket: socket2, name: player2Name?.name, timeLeft: player2Time, id: parsedGame.player2.id, color: parsedGame.player2.color, profilePicture: player2Name.profilePicture },
+            findGame.duration,
             parsedGame.id,
             parsedGame.lastMoveTime,
             parsedGame.currentColor
         );
 
-        game.setBoard(parsedGame.fen);
+        // console.log(parsedGame)
+        // event to remove game
+        game.on("removeGame", async (gameId: string) => {
+            await this.removeGame(gameId)
+        })
+
+        game.setBoard(parsedGame.fen, parsedGame.pgn);
+        // game.setPgn(parsedGame.pgn)
+        game.currentColor = game.board.turn() === "w" ? "white" : "black";
+
         if (parsedGame.offerState) {
             game.setOfferState();
         } else {
             game.resetOfferState();
         }
+
+        const actualTurn = game.board.turn() === "w" ? "white" : "black";
+        if (actualTurn === player1Color) {
+            player1Time = Math.max(0, player1Time - diff);
+        } else {
+            player2Time = Math.max(0, player2Time - diff);
+        }
+
         return { game, parsedData };
+    }
+
+    async removeGame(gameId: string) {
+        const gameKey = `game:${gameId}`
+        const r = await redis.del(gameKey);
+        this.games = this.games.filter((g) => g.id != gameId)
     }
 }

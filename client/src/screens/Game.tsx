@@ -30,6 +30,7 @@ import OpponentDetails from "../components/OpponentDetails";
 import ResignModal from "../components/ResignModal";
 import DrawModal from "../components/DrawModal";
 import MoveHistory from "../components/MoveHistory";
+import { Loader2 } from "lucide-react";
 
 const Game = () => {
   const [isAuthenticated] = useAuth();
@@ -63,6 +64,7 @@ const Game = () => {
   const [opponentTimer, setOpponentTimer] = useState<number>();
   const [reconnecting, setReconnecting] = useState(false);
   const [drawAccepted, setDrawAccepted] = useState(false);
+  const [opponentProfilePicture,setOpponentProfilePicture] = useState<string|undefined|null>(null)
 
   const closeWinnerModal = () => {
     setWinnerModal(false);
@@ -114,9 +116,15 @@ const Game = () => {
           setGameStart(true)
 
           const recoveredGame = message.payload.game;
-          console.log("Restored FEN:", recoveredGame.fen);
-          console.log("Restored PGN:", recoveredGame.pgn);
-          console.log("Move Count:", recoveredGame.moveCount);
+
+          const player1 = message.payload.game.player1
+          const player2 = message.payload.game.player2
+
+          if(user?.id === player1.id){
+            setOpponentProfilePicture(player2.profilePicture)
+          }else{
+            setOpponentProfilePicture(player1.profilePicture)
+          }
 
           const newChess = new Chess();
 
@@ -162,6 +170,7 @@ const Game = () => {
           setMyturn(color === "white")
           setMyTimer(timer)
           setOpponentTimer(timer)
+          setOpponentProfilePicture(message.payload.profilePicture)
           break;
         case MOVE:
           const move = message.payload.move;
@@ -301,7 +310,10 @@ const Game = () => {
     console.log(chessRef.current.history())
   }, [chessRef.current])
 
-  if (!socket) return <div>Connecting......</div>;
+  if (!socket) return <div className="bg-zinc-800 w-full h-screen flex justify-center items-center flex-col gap-y-3">
+    <Loader2 className="animate-spin" size={90} color="green"/>
+    <p className="text-3xl font-semibold text-white">Connecting to Socket.....</p>
+  </div>;
   return (
     <div className="h-screen w-full bg-zinc-800 text-white">
       {
@@ -337,6 +349,7 @@ const Game = () => {
                   <OpponentDetails
                     name={opponentName ? opponentName : "Opponent"}
                     timer={opponentTimer}
+                    opponentProfilePicture={opponentProfilePicture}
                   />
                   <ChessBoard
                     gamelocked={gameLocked}

@@ -30,6 +30,7 @@ export const useSocket = () => {
         }
 
         return ()=>{
+            console.log("Cleanup")
             ws.close()
         }
     }, [])

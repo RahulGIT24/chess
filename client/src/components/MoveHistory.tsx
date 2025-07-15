@@ -59,7 +59,8 @@ const MoveHistory = ({ moveHistory, offerDraw, onResign, waiting, gameStarted, s
                             type: INIT_GAME,
                             name: user?.name,
                             time: time,
-                            id: user?.id
+                            id: user?.id,
+                            profilePicture: user?.profilePicture
                         }))
                         setWaiting(true)
                     }}>Play</Button>
@@ -91,11 +92,18 @@ const MoveHistory = ({ moveHistory, offerDraw, onResign, waiting, gameStarted, s
                     </button>
                 </div>
             }
-            {
-                gameStarted === false &&
-                <Button onClick={() => { logout() }} classname="w-full">Log Out</Button>
+            <div className="flex  flex-col gap-y-4">
+                {
+                    gameStarted === false &&
+                    <Button onClick={() => { navigate("/mygames") }} classname="w-full">Game History</Button>
+                    
+                }
+                {
+                    gameStarted === false &&
+                    <Button onClick={() => { logout() }} classname="w-full bg-transparent border border-green-700">Log Out</Button>
 
-            }
+                }
+            </div>
         </>
     )
 }

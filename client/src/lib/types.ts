@@ -81,6 +81,7 @@ export interface DrawModal {
 export type UserDetailsProps = {
   name?: string;
   timer?: number;
+  opponentProfilePicture?:string|null|undefined
 };
 
 export type TimeDropdownProps = {

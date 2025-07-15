@@ -22,6 +22,7 @@ const UserDetails = ({
       .toString()
       .padStart(2, "0");
     const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+    
     return `${minutes}:${seconds}`;
   };
 
@@ -32,7 +33,7 @@ const UserDetails = ({
     <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
         <img
-          src="/user.png"
+          src={user?.profilePicture ? user.profilePicture : "/user.png"}
           alt="player avatar"
           className="w-10 h-10 bg-white rounded-full border border-white"
         />

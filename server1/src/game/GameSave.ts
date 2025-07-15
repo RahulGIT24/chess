@@ -1,3 +1,4 @@
+import { string } from "zod";
 import { prisma } from "../lib/prisma";
 import { SaveInitGame } from "../types/types";
 
@@ -24,7 +25,7 @@ export class GameSave {
         }
     }
 
-    async handleResign(playerid: string) {
+    async handleResign(playerid: string, fen:string, moves:number) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -32,17 +33,19 @@ export class GameSave {
                     throw new Error("Game not found")
                 }
                 const resignedPlayer = playerid
-                if (game.player1 !== resignedPlayer && game.player2 !== resignedPlayer) {
+                if (game.whiteId !== resignedPlayer && game.blackId !== resignedPlayer) {
                     throw new Error("Player not found")
                 }
-                const winner = resignedPlayer === game.player1 ? game.player2 : game.player1;
+                const winner = resignedPlayer === game.whiteId ? game.blackId : game.whiteId;
                 await prisma.game.update({
                     where: {
                         id: this.id
                     },
                     data: {
                         winner: winner,
-                        resign: resignedPlayer
+                        resign: resignedPlayer,
+                        fen:fen,
+                        moves:moves
                     }
                 })
                 await this.updateRating({ winner, loser: resignedPlayer })
@@ -52,7 +55,7 @@ export class GameSave {
         }
     }
 
-    async handleWin(playerid: string) {
+    async handleWin(playerid: string, fen:string,moves:number) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -60,14 +63,16 @@ export class GameSave {
                     throw new Error("Game not found")
                 }
                 const winner = playerid
-                const loser = game.player1 === winner ? game.player2 : game.player1;
-                if (game.player1 !== winner && game.player2 !== winner) {
+                const loser = game.whiteId === winner ? game.blackId : game.whiteId;
+                if (game.whiteId !== winner && game.blackId !== winner) {
                     throw new Error("Player not found")
                 }
                 await prisma.game.update({
                     where: { id: this.id },
                     data: {
-                        winner: winner
+                        winner: winner,
+                        fen:fen,
+                        moves:moves
                     }
                 })
                 await this.updateRating({ winner: winner, loser })
@@ -77,7 +82,7 @@ export class GameSave {
         }
     }
 
-    async handleDraw() {
+    async handleDraw(fen:string,moves:number) {
         try {
             if (this.id) {
                 await prisma.game.update({
@@ -85,7 +90,9 @@ export class GameSave {
                         id: this.id
                     },
                     data: {
-                        draw: true
+                        draw: true,
+                        fen:fen,
+                        moves:moves
                     }
                 })
             }

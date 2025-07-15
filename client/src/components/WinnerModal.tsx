@@ -36,13 +36,13 @@ const WinnerModal = ({
                 <h2 className="text-xl font-bold text-center mb-4">Game Over!</h2>
                 {
                     winner && (winner === myColor ?
-                        <p className="text-green-500 font-semibold text-3xl text-center mb-6">You Won!</p> :
+                        <p className="text-green-700 font-semibold text-3xl text-center mb-6">You Won!</p> :
                         <p className="text-red-500 font-semibold text-3xl text-center mb-6">You Lose!</p>)
                 }
                 {
                     resignedColor && (resignedColor === myColor ?
                         <p className="text-red-500 font-semibold text-3xl text-center mb-6">You Lose!</p> :
-                        <p className="text-green-500 font-semibold text-3xl text-center mb-6">You Won!</p>)
+                        <p className="text-green-700 font-semibold text-3xl text-center mb-6">You Won!</p>)
                 }
                 {
                     winner &&

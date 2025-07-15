@@ -5,11 +5,13 @@ import { UserDetailsProps } from "../lib/types";
 const OpponentDetails = ({
   name,
   timer,
+  opponentProfilePicture
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
   const formatTime = (timeInMs?: number) => {
     if (typeof timeInMs !== "number") return "--:--";
+    if(isNaN(timeInMs)) return "--:--";
     const totalSeconds = Math.floor(timeInMs / 1000);
     const minutes = Math.floor(totalSeconds / 60)
       .toString()
@@ -22,7 +24,7 @@ const OpponentDetails = ({
     <div className="flex flex-row items-center justify-between gap-x-5  bg-zinc-700 text-white p-2">
       <div className="flex items-center gap-x-5">
         <img
-          src="/user.png"
+          src={opponentProfilePicture ? opponentProfilePicture : "/user.png"}
           alt="player avatar"
           className="w-10 h-10 bg-white rounded-full border border-white"
         />
