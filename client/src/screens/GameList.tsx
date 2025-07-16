@@ -93,7 +93,7 @@ const columns = [
         header: 'View Game',
         cell: (info) => {
             return (
-                <a href={`/game/${info.getValue()}`}><button className="bg-green-700 p-2 rounded-xl font-bold px-7 hover:bg-green-500">View</button></a>
+                <a target="_blank" href={`/game/${info.getValue()}`}><button className="bg-green-700 p-2 rounded-xl font-bold px-7 hover:bg-green-500">View</button></a>
             )
         },
     }),

@@ -114,8 +114,46 @@ const ViewGame = () => {
     </div>;
 
     return (
-        <div className="p-4 bg-zinc-900 min-h-screen text-white gap-x-2 flex items-center justify-between">
-            <ChessBoard board={board} chess={chessRef.current} gamelocked={true} myColor={color} />
+        <div className="p-4 bg-zinc-900 min-h-screen text-white gap-x-2 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-y-2">
+                {/* Black Player Info (Top) */}
+                <div className="flex items-center justify-between min-w-full p-2 bg-zinc-800 rounded-t-xl">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={game.blackRef.profilePicture}
+                            alt={game.blackRef.name}
+                            className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                            <p className="font-semibold">{game.blackRef.name}</p>
+                            <p className="text-sm text-gray-400">Rating: {game.blackRef.rating[0]?.rating ?? "N/A"}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Chess Board */}
+                <ChessBoard
+                    board={board}
+                    chess={chessRef.current}
+                    gamelocked={true}
+                    myColor={color}
+                />
+
+                {/* White Player Info (Bottom) */}
+                <div className="flex items-center justify-between min-w-full p-2 bg-zinc-800 rounded-b-xl">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={game.whiteRef.profilePicture}
+                            alt={game.whiteRef.name}
+                            className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                            <p className="font-semibold">{game.whiteRef.name}</p>
+                            <p className="text-sm text-gray-400">Rating: {game.whiteRef.rating[0]?.rating ?? "N/A"}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="w-[50vw] h-full flex flex-col items-center">
                 <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
                     <MoveHistory viewGame={true} moveHistory={JSON.parse(game?.moveHistory as string)} gameStarted={true} waiting={false} />
