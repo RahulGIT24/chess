@@ -353,7 +353,7 @@ const Game = () => {
                   />
                   <ChessBoard
                     gamelocked={gameLocked}
-                    setBoard={setBoard}
+                    // setBoard={setBoard}
                     chess={chessRef.current}
                     board={board}
                     socket={socket}

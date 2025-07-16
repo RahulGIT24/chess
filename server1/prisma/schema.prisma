@@ -29,6 +29,7 @@ model Game {
   winner     String?  
   resign     String?  
   fen        String?  @default("")
+  moveHistory String? @default("[]")
   moves        Int?  @default(0)
   draw       Boolean  @default(false)
   whiteTimeLeft Int

@@ -1,13 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-interface User {
-  id: string | null;
-  name: string | null;
-  profilePicture: string | null;
-  email: string | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-}
+import { User } from "../../lib/types";
 
 interface stateType {
   user: User | null;

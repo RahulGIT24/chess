@@ -11,7 +11,7 @@ import DropDown from "./DropDown";
 import { INIT_GAME } from "../constants/messages";
 import { MoveHistoryComponent } from "../lib/types";
 
-const MoveHistory = ({ moveHistory, offerDraw, onResign, waiting, gameStarted, setWaiting, socket }: MoveHistoryComponent) => {
+const MoveHistory = ({ moveHistory, offerDraw, onResign, waiting, gameStarted, setWaiting, socket, viewGame }: MoveHistoryComponent) => {
 
     const [time, setTime] = useState<string>("10 M");
     const options = ["1 M", "10 M", "20 M", "30 M", "60 M"];
@@ -48,62 +48,68 @@ const MoveHistory = ({ moveHistory, offerDraw, onResign, waiting, gameStarted, s
                 }
             </div>
             {
-                !waiting && !gameStarted &&
-                <div className="h-full w-full flex justify-center flex-col items-center">
-                    <div className="flex w-full flex-col gap-y-2 top-60">
-                        <p className=" text-xl font-sans font-semibold">Select Duration</p>
-                        <DropDown classname="w-full" selected={time} setSelected={setTime} options={options} />
-                    </div>
-                    <Button disabled={user?.name && user?.name.length > 3 ? false : true} classname={`mt-4 font-bold w-full py-4 text-4xl ${user?.name && user?.name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 '} `} onClick={() => {
-                        socket.send(JSON.stringify({
-                            type: INIT_GAME,
-                            name: user?.name,
-                            time: time,
-                            id: user?.id,
-                            profilePicture: user?.profilePicture
-                        }))
-                        setWaiting(true)
-                    }}>Play</Button>
-                </div>
-            }
-            {
-                waiting && <div className="h-full w-full gap-y-4 flex justify-center flex-col items-center">
-                    <Loader2 className="animate-spin" size={40} />
-                    <p>Searching For Players....</p>
-                </div>
-            }
-            {/* Buttons */}
-            {
-                gameStarted &&
-                <div className="mt-4 flex justify-between gap-4">
-                    <button
-                        className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
-                        onClick={offerDraw}
-                    >
-                        <Handshake size={18} />
-                        Offer Draw
-                    </button>
-                    <button
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
-                        onClick={onResign}
-                    >
-                        <Flag size={18} />
-                        Resign
-                    </button>
-                </div>
-            }
-            <div className="flex  flex-col gap-y-4">
-                {
-                    gameStarted === false &&
-                    <Button onClick={() => { navigate("/mygames") }} classname="w-full">Game History</Button>
-                    
-                }
-                {
-                    gameStarted === false &&
-                    <Button onClick={() => { logout() }} classname="w-full bg-transparent border border-green-700">Log Out</Button>
+                !viewGame &&
+                <>
+                    {
+                        !waiting && !gameStarted &&
+                        <div className="h-full w-full flex justify-center flex-col items-center">
+                            <div className="flex w-full flex-col gap-y-2 top-60">
+                                <p className=" text-xl font-sans font-semibold">Select Duration</p>
+                                <DropDown classname="w-full" selected={time} setSelected={setTime} options={options} />
+                            </div>
+                            <Button disabled={user?.name && user?.name.length > 3 ? false : true} classname={`mt-4 font-bold w-full py-4 text-4xl ${user?.name && user?.name?.length > 3 && 'shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 '} `} onClick={() => {
+                                socket?.send(JSON.stringify({
+                                    type: INIT_GAME,
+                                    name: user?.name,
+                                    time: time,
+                                    id: user?.id,
+                                    profilePicture: user?.profilePicture
+                                }))
+                                if (setWaiting)
+                                    setWaiting(true)
+                            }}>Play</Button>
+                        </div>
+                    }
+                    {
+                        waiting && <div className="h-full w-full gap-y-4 flex justify-center flex-col items-center">
+                            <Loader2 className="animate-spin" size={40} />
+                            <p>Searching For Players....</p>
+                        </div>
+                    }
+                    {/* Buttons */}
+                    {
+                        gameStarted &&
+                        <div className="mt-4 flex justify-between gap-4">
+                            <button
+                                className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
+                                onClick={offerDraw}
+                            >
+                                <Handshake size={18} />
+                                Offer Draw
+                            </button>
+                            <button
+                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
+                                onClick={onResign}
+                            >
+                                <Flag size={18} />
+                                Resign
+                            </button>
+                        </div>
+                    }
+                    <div className="flex  flex-col gap-y-4">
+                        {
+                            gameStarted === false &&
+                            <Button onClick={() => { navigate("/mygames") }} classname="w-full">Game History</Button>
 
-                }
-            </div>
+                        }
+                        {
+                            gameStarted === false &&
+                            <Button onClick={() => { logout() }} classname="w-full bg-transparent border border-green-700">Log Out</Button>
+
+                        }
+                    </div>
+                </>
+            }
         </>
     )
 }

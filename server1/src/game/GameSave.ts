@@ -25,7 +25,7 @@ export class GameSave {
         }
     }
 
-    async handleResign(playerid: string, fen:string, moves:number) {
+    async handleResign(playerid: string, fen:string, moves:number,moveHistory:string[]) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -45,7 +45,8 @@ export class GameSave {
                         winner: winner,
                         resign: resignedPlayer,
                         fen:fen,
-                        moves:moves
+                        moves:moves,
+                        moveHistory:JSON.stringify(moveHistory)
                     }
                 })
                 await this.updateRating({ winner, loser: resignedPlayer })
@@ -55,7 +56,7 @@ export class GameSave {
         }
     }
 
-    async handleWin(playerid: string, fen:string,moves:number) {
+    async handleWin(playerid: string, fen:string,moves:number,moveHistory:string[]) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -72,7 +73,8 @@ export class GameSave {
                     data: {
                         winner: winner,
                         fen:fen,
-                        moves:moves
+                        moves:moves,
+                        moveHistory:JSON.stringify(moveHistory)
                     }
                 })
                 await this.updateRating({ winner: winner, loser })
@@ -82,7 +84,7 @@ export class GameSave {
         }
     }
 
-    async handleDraw(fen:string,moves:number) {
+    async handleDraw(fen:string,moves:number,moveHistory:string[]) {
         try {
             if (this.id) {
                 await prisma.game.update({
@@ -92,7 +94,8 @@ export class GameSave {
                     data: {
                         draw: true,
                         fen:fen,
-                        moves:moves
+                        moves:moves,
+                        moveHistory:JSON.stringify(moveHistory)
                     }
                 })
             }

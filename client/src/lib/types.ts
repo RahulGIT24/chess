@@ -6,11 +6,11 @@ export type ChessBoardProps = {
     type: PieceSymbol;
     color: Color;
   } | null)[][];
-  socket: WebSocket;
-  setBoard: any;
+  // setBoard: any;
   chess: any;
   myColor: string;
   gamelocked: boolean;
+  socket?: WebSocket;
 };
 
 export interface UserMoves {
@@ -23,20 +23,28 @@ export interface ButtonArr {
   func: any;
   className?: string;
 }
-
+export interface User {
+  id: string | null;
+  name: string | null;
+  profilePicture: string | null;
+  email: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+}
 export type ConfimationProps = {
   text: string;
   buttons: ButtonArr[];
 };
 
 export type MoveHistoryComponent = {
-  setWaiting: (arg: boolean) => void;
-  socket: WebSocket;
-  gameStarted: boolean;
+  setWaiting?: (arg: boolean) => void;
+  socket?: WebSocket;
+  gameStarted?: boolean;
   moveHistory: any;
-  offerDraw: () => void;
-  onResign: () => void;
-  waiting: boolean;
+  offerDraw?: () => void;
+  onResign?: () => void;
+  waiting?: boolean;
+  viewGame?:boolean
 };
 
 export type apiCallParams = {
@@ -95,3 +103,35 @@ export type GAuth = {
   credential: string;
   client_id: string;
 };
+
+type PlayerRef = {
+    id: string
+    name: string
+    profilePicture: string
+    rating: {
+        id: string
+        rating: number
+        createdAt: string
+        updatedAt: string
+    }[]
+}
+export type Game = {
+    id: string
+    blackId: string
+    whiteId: string
+    blackRef: PlayerRef
+    whiteRef: PlayerRef
+    winner: string | null
+    winnerRef?: PlayerRef
+    draw: boolean
+    resign: string | null
+    fen: string
+    moveHistory: string
+    moves: number
+    blackTimeLeft: number
+    whiteTimeLeft: number
+    duration: number
+    createdAt: string
+    updatedAt: string
+    message?: string
+}

@@ -12,6 +12,32 @@ export const getGame = asyncHandler(async (req, res) => {
 
         const game = await prisma.game.findUnique({
             where: { id: gameId },
+            include: {
+                blackRef: {
+                    select: {
+                        name: true,
+                        id: true,
+                        rating: true,
+                        profilePicture: true
+                    }
+                },
+                whiteRef: {
+                    select: {
+                        name: true,
+                        id: true,
+                        rating: true,
+                        profilePicture: true
+                    }
+                },
+                winnerRef: {
+                    select: {
+                        name: true,
+                        id: true,
+                        rating: true,
+                        profilePicture: true
+                    }
+                }
+            }
         });
 
         if (game && !game.winner && !game.draw) return res.status(200).json(new ApiResponse(200, null, "Game is going on"));
@@ -64,8 +90,8 @@ export const getGamesOfUser = asyncHandler(async (req, res) => {
             }
         })
 
-        const totalPageSize=10
-        const totalPages=Math.ceil(1/totalPageSize);
+        const totalPageSize = 10
+        const totalPages = Math.ceil(1 / totalPageSize);
 
         const formattedGames = games.map((game) => ({
             id: game.id,
@@ -93,7 +119,7 @@ export const getGamesOfUser = asyncHandler(async (req, res) => {
 
 
 
-        return res.status(200).json(new ApiResponse(200, {games:formattedGames,totalPages}, "User Games Fetched"));
+        return res.status(200).json(new ApiResponse(200, { games: formattedGames, totalPages }, "User Games Fetched"));
     } catch (error) {
         console.log(error);
         if (error instanceof ApiResponse) {

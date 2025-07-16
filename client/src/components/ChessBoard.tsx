@@ -8,7 +8,7 @@ import { ChessBoardProps } from "../lib/types";
 const ChessBoard = ({
   board,
   socket,
-  setBoard,
+  // setBoard,
   chess,
   myColor = "white",
   gamelocked,
@@ -32,6 +32,7 @@ const ChessBoard = ({
   };
 
   useEffect(() => {
+    if(!socket) return;
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       if (data.type === ERROR) {
@@ -52,7 +53,7 @@ const ChessBoard = ({
     if(gamelocked) return;
     if (!promotion) return;
 
-    socket.send(
+    socket?.send(
       JSON.stringify({
         type: MOVE,
         payload: {
@@ -64,7 +65,7 @@ const ChessBoard = ({
         },
       })
     );
-    setBoard(chess.board());
+    // setBoard(chess.board());
     piecePromote();
     setPromotion(null);
     setFrom(null);
@@ -78,13 +79,11 @@ const ChessBoard = ({
     if (!from) {
       if (isMyPiece(squareRepresentation)) {
         setFrom(squareRepresentation);
-        // console.log('From',squareRepresentation);
       } else {
         return;
       }
     } else {
       setTo(squareRepresentation);
-      // console.log('To',squareRepresentation);
       const move = {
         from,
         to: squareRepresentation,
@@ -102,7 +101,7 @@ const ChessBoard = ({
           setPromotion(move);
         } else {
           // Regular move logic
-          socket.send(
+          socket?.send(
             JSON.stringify({
               type: MOVE,
               payload: {
@@ -110,15 +109,6 @@ const ChessBoard = ({
               },
             })
           );
-          // const moveRes = chess.move({
-          //   from: from,
-          //   to: squareRepresentation,
-          // });
-          // setMyMoves((prev: any) => [
-          //   { piece: moveRes.piece, place: squareRepresentation },
-          //   ...prev,
-          // ]);
-          // setBoard(chess.board());
 
           const destinationsq = board
             .flat()

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     createColumnHelper,
     flexRender,
@@ -91,9 +91,9 @@ const columns = [
     }),
     columnHelper.accessor('id', {
         header: 'View Game',
-        cell: (_) => {
+        cell: (info) => {
             return (
-                <button className="bg-green-700 p-2 rounded-xl font-bold px-7 hover:bg-green-500">View</button>
+                <a href={`/game/${info.getValue()}`}><button className="bg-green-700 p-2 rounded-xl font-bold px-7 hover:bg-green-500">View</button></a>
             )
         },
     }),
@@ -102,15 +102,16 @@ const columns = [
 const GameList: React.FC = () => {
     const [data, _setData] = React.useState(() => [])
     const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1)
+    const page = useRef<number>(1);
     const [totalPages, setTotalPages] = useState(1)
+    const navigate = useNavigate()
 
     const getData = async () => {
         try {
             setLoading(true)
             const res = await apiCall({
                 method: "GET",
-                url: `/game/mygames?page=${page}`
+                url: `/game/mygames?page=${page.current}`
             })
             _setData(res.data.games)
             setTotalPages(res.data.totalPages)
@@ -124,10 +125,7 @@ const GameList: React.FC = () => {
 
     useEffect(() => {
         getData()
-    }, [])
-
-    const navigate = useNavigate()
-
+    }, [navigate, page])
 
     const table = useReactTable({
         data,
@@ -139,7 +137,7 @@ const GameList: React.FC = () => {
         <div className="p-4 bg-zinc-900 min-h-screen text-white gap-y-10 flex flex-col items-center">
             <div className="w-[50vw] flex gap-x-6 items-center mt-14">
                 <div>
-                    <ArrowLeftCircle size={30} className="cursor-pointer" onClick={()=>navigate("/game")}/>
+                    <ArrowLeftCircle size={30} className="cursor-pointer" onClick={() => navigate("/game")} />
                 </div>
                 <div className="flex justify-center items-center gap-x-3">
                     <h1 className="font-bold text-2xl">Game History</h1>
@@ -189,7 +187,7 @@ const GameList: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
-                        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                        <Pagination currentPage={page.current} totalPages={totalPages} page={page.current} />
                     </div>
             }
         </div>

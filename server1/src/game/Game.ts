@@ -156,7 +156,7 @@ export class Game extends EventEmitter {
         } else {
           winnerId = this.player2.id
         }
-        Game.gameDBController.handleWin(winnerId, this.board.fen(),this.board.history().length).catch(e => console.log(e))
+        Game.gameDBController.handleWin(winnerId, this.board.fen(), this.board.history().length, this.board.history()).catch(e => console.log(e))
         this.emit("removeGame", this.id);
         return;
       }
@@ -176,7 +176,7 @@ export class Game extends EventEmitter {
             })
           );
         }
-        Game.gameDBController.handleDraw(this.board.fen(),this.board.history().length).catch(e => console.log(e))
+        Game.gameDBController.handleDraw(this.board.fen(), this.board.history().length, this.board.history()).catch(e => console.log(e))
         this.emit("removeGame", this.id)
         return;
       }
@@ -264,7 +264,7 @@ export class Game extends EventEmitter {
         })
       );
     }
-    Game.gameDBController.handleDraw(this.board.fen(),this.board.history().length).catch(e => console.log(e));
+    Game.gameDBController.handleDraw(this.board.fen(), this.board.history().length, this.board.history()).catch(e => console.log(e));
     this.emit("removeGame", this.id)
   }
 
@@ -303,7 +303,7 @@ export class Game extends EventEmitter {
         })
       );
     }
-    Game.gameDBController.handleWin(playerId, this.board.fen(),this.board.history().length).catch(e => console.log(e))
+    Game.gameDBController.handleWin(playerId, this.board.fen(), this.board.history().length, this.board.history()).catch(e => console.log(e))
   }
 
   setOfferState() {
@@ -331,7 +331,7 @@ export class Game extends EventEmitter {
         })
       );
     }
-    Game.gameDBController.handleResign(id, this.board.fen(),this.board.history().length).catch(e => console.log(e))
+    Game.gameDBController.handleResign(id, this.board.fen(), this.board.history().length, this.board.history()).catch(e => console.log(e))
   }
 
   async saveGame() {
