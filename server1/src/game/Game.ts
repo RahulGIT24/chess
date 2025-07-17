@@ -19,6 +19,7 @@ export class Game extends EventEmitter {
   public currentColor: string
   public lastMoveTime: number
   public initialTime: number
+  public skipInitGame?:boolean
 
   constructor(
     player1: Player,
@@ -26,7 +27,8 @@ export class Game extends EventEmitter {
     initialTime: number,
     id: string,
     lastMoveTime: number,
-    currentColor: string
+    currentColor: string,
+    skipInitGame?: boolean,
   ) {
     super()
     this.player1 = { socket: player1.socket, id: player1.id, timeLeft: player1.timeLeft, name: player1.name, color: player1.color, profilePicture: player1.profilePicture, rating: player1.rating };
@@ -41,6 +43,7 @@ export class Game extends EventEmitter {
     this.initialTime = initialTime
 
     if (!this.player1.socket || !this.player2.socket) return;
+    if(skipInitGame) return;
 
     this.player1.socket.send(
       JSON.stringify({
@@ -123,7 +126,6 @@ export class Game extends EventEmitter {
       }
 
       const moved = this.board.move(move);
-
       if (!moved) {
         throw new Error("Invalid Move")
       }
@@ -366,8 +368,8 @@ export class Game extends EventEmitter {
   }
 
   setBoard(fen: string, pgn: string) {
-    const chess = new Chess(fen);
+    const chess = new Chess();
+    chess.loadPgn(pgn)
     this.board = chess
-    console.log("Board", this.board)
   }
 }

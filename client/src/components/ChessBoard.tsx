@@ -8,7 +8,6 @@ import { ChessBoardProps } from "../lib/types";
 const ChessBoard = ({
   board,
   socket,
-  // setBoard,
   chess,
   myColor = "white",
   gamelocked,
@@ -63,7 +62,6 @@ const ChessBoard = ({
         },
       })
     );
-    // setBoard(chess.board());
     piecePromote();
     setPromotion(null);
     setFrom(null);
@@ -72,7 +70,7 @@ const ChessBoard = ({
 
   const handlePieceMove = (squareRepresentation: Square) => {
     if(gamelocked) return;
-    if (promotion) return; // If promotion modal is open, don't handle regular move
+    if (promotion) return;
 
     if (!from) {
       if (isMyPiece(squareRepresentation)) {
@@ -98,6 +96,7 @@ const ChessBoard = ({
           // If it's a pawn and reaches the last rank, set promotion
           setPromotion(move);
         } else {
+          console.log('moving')
           // Regular move logic
           socket?.send(
             JSON.stringify({

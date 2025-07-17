@@ -98,8 +98,6 @@ export class GameManager {
                             }
                             player1Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: data, message: "Game Recovered" } }))
                             player2Socket.socket.send(JSON.stringify({ type: RECONNECTED, payload: { game: data, message: "Game Recovered" } }))
-                            this.addHandler(player1Socket.socket);
-                            this.addHandler(player2Socket.socket);
                         } else {
                             socket.send(JSON.stringify({ type: RECONNECTING, payload: { message: "Reconnecting to Game...." } }))
                         }
@@ -108,6 +106,7 @@ export class GameManager {
                 }
             });
         }
+
         this.addHandler(socket);
         return;
     }
@@ -133,6 +132,7 @@ export class GameManager {
 
     private addHandler(socket: WebSocket) {
         socket.on("message", async (data) => {
+            console.log("RAW", socket.url, data);
             const message = JSON.parse(data.toString())
             const username = message.name;
             if (message.type === INIT_GAME) {
@@ -147,16 +147,17 @@ export class GameManager {
                         type: ERROR,
                         payload: { message: "You are already in another game" },
                     }))
+                    return;
                 }
 
                 if (pendingUser) {
                     if (pendingUser?.id === userid) {
                         return
                     }
-                    
+
                     const pendingUserRating = await GameManager.GameDBCalls.getUserRating(pendingUser.id);
                     const currentUserRating = await GameManager.GameDBCalls.getUserRating(message.id)
-                    
+
                     const isCompatible = await GameManager.GameDBCalls.checkCompatibility({ player1: pendingUser.id, player2: userid })
                     if (!isCompatible) {
                         return;
@@ -179,7 +180,6 @@ export class GameManager {
                     GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid, profilePicture: profilePicture })
                 }
             }
-
             if (message.type === MOVE) {
                 const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
                 if (game) {
@@ -292,7 +292,8 @@ export class GameManager {
             findGame.duration,
             parsedGame.id,
             parsedGame.lastMoveTime,
-            parsedGame.currentColor
+            parsedGame.currentColor,
+            true
         );
 
         // console.log(parsedGame)

@@ -64,7 +64,6 @@ const Game = () => {
   const [myTimer, setMyTimer] = useState<number>();
   const [opponentTimer, setOpponentTimer] = useState<number>();
   const [reconnecting, setReconnecting] = useState(false);
-  const [drawAccepted, setDrawAccepted] = useState(false);
   const [opponentProfilePicture, setOpponentProfilePicture] = useState<string | undefined | null>(null)
   const [myRating, setMyRating] = useState<null | number>(null);
   const [opponentRating, setOpponentRating] = useState<null | number>(null);
@@ -151,7 +150,6 @@ const Game = () => {
 
           if (recoveredGame.pgn) {
             newChess.loadPgn(recoveredGame.pgn);
-            console.log(newChess)
           } else if (recoveredGame.fen) {
             newChess.load(recoveredGame.fen);
           }
@@ -247,7 +245,6 @@ const Game = () => {
 
         case OFFER_ACCEPTED:
           setDraw(true);
-          setDrawAccepted(true);
           setGameLocked(true);
           setDrawModal(false);
           gameend()
@@ -295,8 +292,7 @@ const Game = () => {
   }, [myTimer])
 
   useEffect(() => {
-    if (drawAccepted) return;
-    if (winnerModal) return;
+    if(gameLocked) return;
     const interval = setInterval(() => {
       if (myTurn) {
         setMyTimer((prev) => {
@@ -312,7 +308,7 @@ const Game = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [myTurn, drawAccepted, winnerModal]);
+  }, [myTurn,gameLocked]);
 
   const drawAccept = () => {
     if (gameLocked) return;
@@ -324,7 +320,6 @@ const Game = () => {
         },
       })
     );
-    setDrawAccepted(true);
   };
 
   const drawReject = () => {
