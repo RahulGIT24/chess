@@ -1,5 +1,5 @@
 import useSound from "use-sound"
-import { CAPTURE_SOUND, CASTLE_SOUND, GAME_END, GAME_START, ILLEGAL, MOVE_SELF, PROMOTE, TIME_ENDING } from "../constants/sounds"
+import { CAPTURE_SOUND, CASTLE_SOUND, CHECK, GAME_END, GAME_START, ILLEGAL, MOVE_SELF, PROMOTE, TIME_ENDING } from "../constants/sounds"
 
 export const useSoundEffects = () => {
     const [capture] = useSound(CAPTURE_SOUND)
@@ -10,9 +10,10 @@ export const useSoundEffects = () => {
     const [promote] = useSound(PROMOTE)
     const [timending] = useSound(TIME_ENDING)
     const [error] = useSound(ILLEGAL)
+    const [check] = useSound(CHECK)
 
     return {
         capture, castle, gameend, gamestart, move,
-        promote, timending,error
+        promote, timending,error, check
     }
 }

@@ -102,7 +102,7 @@ const columns = [
 const GameList: React.FC = () => {
     const [data, _setData] = React.useState(() => [])
     const [loading, setLoading] = useState(false);
-    const page = useRef<number>(1);
+    const [page,setPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState(1)
     const navigate = useNavigate()
 
@@ -111,7 +111,7 @@ const GameList: React.FC = () => {
             setLoading(true)
             const res = await apiCall({
                 method: "GET",
-                url: `/game/mygames?page=${page.current}`
+                url: `/game/mygames?page=${page}`
             })
             _setData(res.data.games)
             setTotalPages(res.data.totalPages)
@@ -187,7 +187,7 @@ const GameList: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
-                        <Pagination currentPage={page.current} totalPages={totalPages} page={page.current} />
+                        <Pagination currentPage={page} totalPages={totalPages} setPage={setPage} />
                     </div>
             }
         </div>

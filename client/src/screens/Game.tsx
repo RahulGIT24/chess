@@ -122,7 +122,7 @@ const Game = () => {
       })
     );
   };
-  const { gamestart, gameend, move: pieceMove } = useSoundEffects();
+  const { gamestart, gameend, move: pieceMove,check } = useSoundEffects();
 
   useEffect(() => {
     if (!socket) return;
@@ -209,9 +209,15 @@ const Game = () => {
               setMyTimer(blackTime)
               setOpponentTimer(whiteTime)
             }
-            pieceMove();
+            if(chessRef.current.isCheck()){
+              check()
+            }else{
+              pieceMove();
+
+            }
             setBoard(chessRef.current.board());
             setMyturn(currentColor === myColor.current);
+
           } catch (error) {
             console.log(error)
           }
@@ -231,6 +237,7 @@ const Game = () => {
           setResignedColor(message.payload.color);
           setWinnerModal(true);
           setGameLocked(true);
+          gameend()
           updateRatings(message.payload.color == "white" ? "black" : "white")
           break;
         case DRAW:
@@ -243,6 +250,7 @@ const Game = () => {
           setDrawAccepted(true);
           setGameLocked(true);
           setDrawModal(false);
+          gameend()
           break;
 
         case OFFER_REJECTED:
@@ -259,6 +267,7 @@ const Game = () => {
           setWinner(message.payload.color);
           setTimeUpColor(message.payload.color == "white" ? "black" : "white");
           updateRatings(message.payload.color)
+          gameend()
           break;
         case RECONNECTING:
           setReconnecting(true);

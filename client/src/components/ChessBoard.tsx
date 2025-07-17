@@ -20,10 +20,8 @@ const ChessBoard = ({
   } | null>(null);
   const [to, setTo] = useState<Square | null>(null);
   const {
-    move: pieceMove,
     promote: piecePromote,
     error: errSound,
-    capture,
   } = useSoundEffects();
 
   const isMyPiece = (square: Square | null) => {
@@ -109,19 +107,6 @@ const ChessBoard = ({
               },
             })
           );
-
-          const destinationsq = board
-            .flat()
-            .find((cell) => cell?.square === squareRepresentation);
-          const isCapture =
-            destinationsq &&
-            destinationsq.color !== (myColor === "white" ? "w" : "b");
-
-          if (isCapture) {
-            capture();
-          } else {
-            pieceMove();
-          }
           setFrom(null);
           setTo(null);
         }

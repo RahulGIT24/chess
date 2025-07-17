@@ -91,7 +91,7 @@ export const getGamesOfUser = asyncHandler(async (req, res) => {
         })
 
         const totalPageSize = 10
-        const totalPages = Math.ceil(1 / totalPageSize);
+        const totalPages = Math.ceil(totalDocs / totalPageSize);
 
         const formattedGames = games.map((game) => ({
             id: game.id,
