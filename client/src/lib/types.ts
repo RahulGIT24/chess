@@ -57,10 +57,13 @@ export type WinnerProps = {
   winner?: string;
   closeModal: () => void;
   myColor: string;
-  // name: string,
   opponentName: string;
   resignedColor?: string;
   timeUpColor?: string;
+  myRating:number | null,
+  opponentRating:number | null,
+  opponentImage:string
+  draw:boolean
 };
 
 export type PromotionProps = {
@@ -90,6 +93,7 @@ export type UserDetailsProps = {
   name?: string;
   timer?: number;
   opponentProfilePicture?:string|null|undefined
+  opponentRating:number|null
 };
 
 export type TimeDropdownProps = {

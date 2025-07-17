@@ -6,12 +6,14 @@ type UserDetailsProps = {
   color: string;
   opponentTimer?: number;
   myTimer?: number;
+  rating:number | null
 };
 
 const UserDetails = ({
   name,
   opponentTimer,
   myTimer,
+  rating
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -39,7 +41,7 @@ const UserDetails = ({
         />
         <div>
           <p className="font-serif font-semibold text-xl">
-            {name ? name : user?.name}
+            {name ? name : user?.name} {" "} ({rating})
           </p>
           <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(displayTimer)}</p>
         </div>

@@ -132,7 +132,7 @@ export class GameManager {
     }
 
     private addHandler(socket: WebSocket) {
-        socket.on("message", (data) => {
+        socket.on("message", async (data) => {
             const message = JSON.parse(data.toString())
             const username = message.name;
             if (message.type === INIT_GAME) {
@@ -153,21 +153,27 @@ export class GameManager {
                     if (pendingUser?.id === userid) {
                         return
                     }
-
-                    if (!GameManager.GameDBCalls.checkCompatibility({ player1: pendingUser.id, player2: userid })) {
+                    
+                    const pendingUserRating = await GameManager.GameDBCalls.getUserRating(pendingUser.id);
+                    const currentUserRating = await GameManager.GameDBCalls.getUserRating(message.id)
+                    
+                    const isCompatible = await GameManager.GameDBCalls.checkCompatibility({ player1: pendingUser.id, player2: userid })
+                    if (!isCompatible) {
                         return;
                     }
+
                     const id = uuidv4();
                     const randomWhite = Math.random() > 0.5
                     const player1Color = randomWhite ? "white" : "black";
                     const player2Color = randomWhite ? "black" : "white";
-                    const pendingCopy: Pending = { ...pendingUser, color: player2Color }
-                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color, profilePicture: profilePicture }, time, id, Date.now(), "white")
+                    const pendingCopy: Pending = { ...pendingUser, color: player2Color, rating: (pendingUserRating as number) }
+                    const game = new Game(pendingCopy, { socket, name: username, timeLeft: time, id: userid, color: player1Color, profilePicture: profilePicture, rating: (currentUserRating as number) }, time, id, Date.now(), "white")
+
                     // event to remove game
                     game.on("removeGame", async (gameId: string) => {
-                        console.log(`Event received: removeGame for gameId=${gameId}`);
                         await this.removeGame(gameId);
                     });
+
                     this.games.push(game);
                 } else {
                     GameManager.pendingUser?.enque({ socket, name: username, timeLeft: time, id: userid, profilePicture: profilePicture })
@@ -250,7 +256,8 @@ export class GameManager {
             },
             select: {
                 name: true,
-                profilePicture: true
+                profilePicture: true,
+                rating: true
             }
         })
         const player2Name = await prisma.user.findFirst({
@@ -259,7 +266,8 @@ export class GameManager {
             },
             select: {
                 name: true,
-                profilePicture: true
+                profilePicture: true,
+                rating: true
             }
         })
 
@@ -279,8 +287,8 @@ export class GameManager {
         parsedData.player2.timeLeft = player2Time
 
         const game = new Game(
-            { socket: socket1, name: player1Name?.name, timeLeft: player1Time, id: parsedGame.player1.id, color: parsedGame.player1.color, profilePicture: player1Name.profilePicture },
-            { socket: socket2, name: player2Name?.name, timeLeft: player2Time, id: parsedGame.player2.id, color: parsedGame.player2.color, profilePicture: player2Name.profilePicture },
+            { socket: socket1, name: player1Name?.name, timeLeft: player1Time, id: parsedGame.player1.id, color: parsedGame.player1.color, profilePicture: player1Name.profilePicture, rating: player1Name.rating[0].rating },
+            { socket: socket2, name: player2Name?.name, timeLeft: player2Time, id: parsedGame.player2.id, color: parsedGame.player2.color, profilePicture: player2Name.profilePicture, rating: player2Name.rating[0].rating },
             findGame.duration,
             parsedGame.id,
             parsedGame.lastMoveTime,

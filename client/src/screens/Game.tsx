@@ -5,7 +5,6 @@ import { Chess } from "chess.js";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 import UserDetails from "../components/UserDetails";
 import WinnerModal from "../components/WinnerModal";
-import Draw from "../components/Draw";
 import {
   DRAW,
   DRAW_OFFER_REPLY,
@@ -31,6 +30,8 @@ import ResignModal from "../components/ResignModal";
 import DrawModal from "../components/DrawModal";
 import MoveHistory from "../components/MoveHistory";
 import { Loader2 } from "lucide-react";
+import { apiCall } from "../lib/apiCall";
+import { GET } from "../constants/methods";
 
 const Game = () => {
   const [isAuthenticated] = useAuth();
@@ -64,11 +65,31 @@ const Game = () => {
   const [opponentTimer, setOpponentTimer] = useState<number>();
   const [reconnecting, setReconnecting] = useState(false);
   const [drawAccepted, setDrawAccepted] = useState(false);
-  const [opponentProfilePicture,setOpponentProfilePicture] = useState<string|undefined|null>(null)
+  const [opponentProfilePicture, setOpponentProfilePicture] = useState<string | undefined | null>(null)
+  const [myRating, setMyRating] = useState<null | number>(null);
+  const [opponentRating, setOpponentRating] = useState<null | number>(null);
 
-  const closeWinnerModal = () => {
-    setWinnerModal(false);
-  };
+  const updateRatings = (winner: "white" | "black") => {
+    if (winner == myColor.current) {
+      setMyRating(prev => (prev as number) + 8)
+      setOpponentRating(prev => (prev as number) - 8 === 0 ? 0 : (prev as number) - 8)
+    } else {
+      setOpponentRating(prev => (prev as number) + 8)
+      setMyRating(prev => (prev as number) - 8 === 0 ? 0 : (prev as number) - 8)
+    }
+  }
+
+  const getRating = async () => {
+    try {
+      const res = await apiCall({
+        url: `/auth/get-rating`,
+        method: GET
+      })
+      setMyRating(res.data.rating)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const onResign = () => {
     if (gameLocked) return;
@@ -120,9 +141,9 @@ const Game = () => {
           const player1 = message.payload.game.player1
           const player2 = message.payload.game.player2
 
-          if(user?.id === player1.id){
+          if (user?.id === player1.id) {
             setOpponentProfilePicture(player2.profilePicture)
-          }else{
+          } else {
             setOpponentProfilePicture(player1.profilePicture)
           }
 
@@ -158,7 +179,7 @@ const Game = () => {
         case INIT_GAME:
           const name = message.payload.name;
           const color = message.payload.color;
-          console.log("Init game color: ", color)
+          const rating = message.payload.rating;
           const timer = message.payload.timer;
           setWaiting(false);
           chessRef.current = new Chess();
@@ -171,6 +192,7 @@ const Game = () => {
           setMyTimer(timer)
           setOpponentTimer(timer)
           setOpponentProfilePicture(message.payload.profilePicture)
+          setOpponentRating(rating)
           break;
         case MOVE:
           const move = message.payload.move;
@@ -190,7 +212,6 @@ const Game = () => {
             pieceMove();
             setBoard(chessRef.current.board());
             setMyturn(currentColor === myColor.current);
-
           } catch (error) {
             console.log(error)
           }
@@ -203,12 +224,14 @@ const Game = () => {
           setWinnerModal(true);
           setGameLocked(true);
           gameend();
+          updateRatings(winner)
           break;
 
         case RESIGN:
           setResignedColor(message.payload.color);
           setWinnerModal(true);
           setGameLocked(true);
+          updateRatings(message.payload.color == "white" ? "black" : "white")
           break;
         case DRAW:
           setDraw(true);
@@ -235,6 +258,7 @@ const Game = () => {
           setWinnerModal(true);
           setWinner(message.payload.color);
           setTimeUpColor(message.payload.color == "white" ? "black" : "white");
+          updateRatings(message.payload.color)
           break;
         case RECONNECTING:
           setReconnecting(true);
@@ -307,11 +331,16 @@ const Game = () => {
   }
 
   useEffect(() => {
-    console.log(chessRef.current.history())
-  }, [chessRef.current])
+    getRating()
+  }, [])
+
+  const closeModals = () => {
+    setWinnerModal(false)
+    setDraw(false);
+  }
 
   if (!socket) return <div className="bg-zinc-800 w-full h-screen flex justify-center items-center flex-col gap-y-3">
-    <Loader2 className="animate-spin" size={90} color="green"/>
+    <Loader2 className="animate-spin" size={90} color="green" />
     <p className="text-3xl font-semibold text-white">Connecting to Socket.....</p>
   </div>;
   return (
@@ -319,25 +348,22 @@ const Game = () => {
       {
         reconnecting && <ReconnectingModal />
       }
-      {((winner && winnerModal) ||
+      {((draw) || (winner && winnerModal) ||
         (winnerModal && resignedColor) ||
         winnerModal) && (
           <WinnerModal
             winner={winner as string}
-            closeModal={closeWinnerModal}
+            closeModal={closeModals}
             myColor={myColor.current as string}
             opponentName={opponentName}
+            myRating={myRating}
+            opponentImage={opponentProfilePicture as string}
+            opponentRating={opponentRating}
             resignedColor={resignedColor as string}
             timeUpColor={timeUpColor}
+            draw={drawModal}
           />
         )}
-      {draw && (
-        <Draw
-          onClose={() => {
-            setDraw(false);
-          }}
-        />
-      )}
       <ResignModal resignModal={resignModal} closeResignModal={closeResignModal} onResignConfirm={onResignConfirm} />
       <DrawModal drawModal={drawModal} drawAccept={drawAccept} drawReject={drawReject} />
       <div className="justify-center flex">
@@ -350,6 +376,7 @@ const Game = () => {
                     name={opponentName ? opponentName : "Opponent"}
                     timer={opponentTimer}
                     opponentProfilePicture={opponentProfilePicture}
+                    opponentRating={opponentRating}
                   />
                   <ChessBoard
                     gamelocked={gameLocked}
@@ -362,12 +389,13 @@ const Game = () => {
                   <UserDetails
                     color={myColor.current === "white" ? "w" : "b"}
                     myTimer={myTimer}
+                    rating={myRating}
                   />
                 </div>
 
                 <div className="w-full h-full flex flex-col items-center">
                   <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
-                    <MoveHistory setWaiting={setWaiting} socket={socket} gameStarted={gameStart} moveHistory={chessRef.current.history()} offerDraw={offerDraw} onResign={onResign} waiting={waiting}/>
+                    <MoveHistory setWaiting={setWaiting} socket={socket} gameStarted={gameStart} moveHistory={chessRef.current.history()} offerDraw={offerDraw} onResign={onResign} waiting={waiting} />
                   </div>
                 </div>
               </div>

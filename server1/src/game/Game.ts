@@ -29,8 +29,8 @@ export class Game extends EventEmitter {
     currentColor: string
   ) {
     super()
-    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: player1.timeLeft, name: player1.name, color: player1.color, profilePicture: player1.profilePicture };
-    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: player2.timeLeft, name: player2.name, color: player2.color, profilePicture: player2.profilePicture };
+    this.player1 = { socket: player1.socket, id: player1.id, timeLeft: player1.timeLeft, name: player1.name, color: player1.color, profilePicture: player1.profilePicture, rating: player1.rating };
+    this.player2 = { socket: player2.socket, id: player2.id, timeLeft: player2.timeLeft, name: player2.name, color: player2.color, profilePicture: player2.profilePicture, rating: player2.rating };
     this.offerState = false
     this.board = new Chess();
     this.startTime = new Date();
@@ -49,7 +49,8 @@ export class Game extends EventEmitter {
           name: player2.name,
           timer: initialTime,
           color: player1.color,
-          profilePicture: player2.profilePicture
+          profilePicture: player2.profilePicture,
+          rating: player2.rating,
         },
       })
     );
@@ -61,7 +62,8 @@ export class Game extends EventEmitter {
           name: player1.name,
           timer: initialTime,
           color: player2.color,
-          profilePicture: player1.profilePicture
+          profilePicture: player1.profilePicture,
+          rating: player1.rating
         },
       })
     );

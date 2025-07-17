@@ -1,4 +1,3 @@
-import { string } from "zod";
 import { prisma } from "../lib/prisma";
 import { SaveInitGame } from "../types/types";
 
@@ -13,9 +12,9 @@ export class GameSave {
         try {
             const id = args.id;
             const findGame = await prisma.game.findFirst({
-                where:{id}
+                where: { id }
             })
-            if(!findGame){
+            if (!findGame) {
                 await prisma.game.create({
                     data: args
                 })
@@ -25,7 +24,7 @@ export class GameSave {
         }
     }
 
-    async handleResign(playerid: string, fen:string, moves:number,moveHistory:string[]) {
+    async handleResign(playerid: string, fen: string, moves: number, moveHistory: string[]) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -44,9 +43,9 @@ export class GameSave {
                     data: {
                         winner: winner,
                         resign: resignedPlayer,
-                        fen:fen,
-                        moves:moves,
-                        moveHistory:JSON.stringify(moveHistory)
+                        fen: fen,
+                        moves: moves,
+                        moveHistory: JSON.stringify(moveHistory)
                     }
                 })
                 await this.updateRating({ winner, loser: resignedPlayer })
@@ -56,7 +55,7 @@ export class GameSave {
         }
     }
 
-    async handleWin(playerid: string, fen:string,moves:number,moveHistory:string[]) {
+    async handleWin(playerid: string, fen: string, moves: number, moveHistory: string[]) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -72,9 +71,9 @@ export class GameSave {
                     where: { id: this.id },
                     data: {
                         winner: winner,
-                        fen:fen,
-                        moves:moves,
-                        moveHistory:JSON.stringify(moveHistory)
+                        fen: fen,
+                        moves: moves,
+                        moveHistory: JSON.stringify(moveHistory)
                     }
                 })
                 await this.updateRating({ winner: winner, loser })
@@ -84,7 +83,7 @@ export class GameSave {
         }
     }
 
-    async handleDraw(fen:string,moves:number,moveHistory:string[]) {
+    async handleDraw(fen: string, moves: number, moveHistory: string[]) {
         try {
             if (this.id) {
                 await prisma.game.update({
@@ -93,9 +92,9 @@ export class GameSave {
                     },
                     data: {
                         draw: true,
-                        fen:fen,
-                        moves:moves,
-                        moveHistory:JSON.stringify(moveHistory)
+                        fen: fen,
+                        moves: moves,
+                        moveHistory: JSON.stringify(moveHistory)
                     }
                 })
             }
@@ -105,55 +104,55 @@ export class GameSave {
     }
 
     async updateRating({ winner, loser }: { winner: string, loser: string }) {
-        const winnerT = await prisma.rating.upsert({
+        const winnerT = await prisma.rating.findFirst({
             where: { player: winner },
-            update: {}, 
-            create: { player: winner, rating: 500 }
         });
 
-        const loserT = await prisma.rating.upsert({
+        const loserT = await prisma.rating.findFirst({
             where: { player: loser },
-            update: {},
-            create: { player: loser, rating: 500 }
         });
-        
+
+        if (!winnerT || !loserT) return;
+
         await Promise.all([
             prisma.rating.update({
                 where: { player: winner },
-                data: { rating: winnerT.rating + 15 }
+                data: { rating: winnerT.rating + 8 }
             }),
             prisma.rating.update({
                 where: { player: loser },
-                data: { rating: loserT.rating - 20 }
+                data: { rating: loserT.rating - 8 <= 0 ? 0 : loserT.rating - 8}
             })
         ]);
     }
-    
 
-    async checkCompatibility({player1,player2}:{player1:string,player2:string}):Promise<boolean>{
+
+    async checkCompatibility({ player1, player2 }: { player1: string, player2: string }): Promise<boolean> {
         const player1Rating = await this.getUserRating(player1)
         const player2Rating = await this.getUserRating(player2)
 
-        if(player1Rating==null || player2Rating==null){
+        if (player1Rating == null || player2Rating == null) {
             return true
         }
 
-        if(player1Rating-player2Rating <= 75){
-            return true;
+        if (Math.abs(player1Rating - player2Rating) >= 50) {
+            console.log("Not Ideal")
+            return false;
         }
-        return false;
+        console.log("Good to go")
+        return true;
     }
 
-    async getUserRating(userid:string):Promise<number | null>{
+    async getUserRating(userid: string): Promise<number | null> {
         const playerRating = await prisma.rating.findFirst({
-            where:{
-                player:userid
+            where: {
+                player: userid
             },
-            select:{
-                rating:true
+            select: {
+                rating: true
             }
         })
-        if(playerRating){
+        if (playerRating) {
             return playerRating.rating
         }
         return null;

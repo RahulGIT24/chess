@@ -5,13 +5,15 @@ import { UserDetailsProps } from "../lib/types";
 const OpponentDetails = ({
   name,
   timer,
-  opponentProfilePicture
+  opponentProfilePicture,
+  opponentRating
 }: UserDetailsProps) => {
+
   const { user } = useSelector((state: RootState) => state.user);
 
   const formatTime = (timeInMs?: number) => {
     if (typeof timeInMs !== "number") return "--:--";
-    if(isNaN(timeInMs)) return "--:--";
+    if (isNaN(timeInMs)) return "--:--";
     const totalSeconds = Math.floor(timeInMs / 1000);
     const minutes = Math.floor(totalSeconds / 60)
       .toString()
@@ -30,7 +32,7 @@ const OpponentDetails = ({
         />
         <div>
           <p className="font-serif font-semibold text-xl">
-            {name ? name : user?.name}
+            {name ? name : user?.name} {" "} ({opponentRating ?? 0})
           </p>
           <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(timer)}</p>
         </div>

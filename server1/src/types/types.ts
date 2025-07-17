@@ -25,6 +25,7 @@ export interface IPending {
 
 export interface Pending extends IPending {
   color: "white" | "black";
+  rating:number
 }
 
 export interface SaveInitGame {
@@ -43,4 +44,5 @@ export interface Player {
   name: string | null;
   color: "black" | "white";
   profilePicture?:string | null
+  rating:number
 }

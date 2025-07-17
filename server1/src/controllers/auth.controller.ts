@@ -44,8 +44,8 @@ export const googleAuth = asyncHandler(async (req, res) => {
                     },
                 });
                 await prisma.rating.create({
-                    data:{
-                        player:user.id
+                    data: {
+                        player: user.id
                     }
                 })
             }
@@ -59,7 +59,6 @@ export const googleAuth = asyncHandler(async (req, res) => {
                 where: { id: user.id },
                 data: { refreshToken: refreshToken },
             });
-            
             return res.status(200)
                 .cookie("accesstoken", accessToken, {
                     httpOnly: true,
@@ -71,7 +70,7 @@ export const googleAuth = asyncHandler(async (req, res) => {
                     secure: true,
                     sameSite: "strict",
                 })
-                .json(new ApiResponse(200, {user,accessToken,refreshToken}, "Signed In"));
+                .json(new ApiResponse(200, { user, accessToken, refreshToken }, "Signed In"));
         } else {
             throw new ApiResponse(400, null, "Error while getting user id from Google");
         }
@@ -153,6 +152,24 @@ export const getLoggedInUser = asyncHandler(async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
     }
 });
+
+export const getUserRating = asyncHandler(async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const rating = await prisma.rating.findUnique({
+            where: { player: userId },
+        });
+
+        return res.status(200).json(new ApiResponse(200, { rating: rating?.rating ?? 0 }, "User Fetched"));
+
+    } catch (error) {
+        console.log(error);
+        if (error instanceof ApiResponse) {
+            return res.status(error.statuscode).json(error);
+        }
+        return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+    }
+})
 
 
 export const logout = asyncHandler(async (req, res) => {
