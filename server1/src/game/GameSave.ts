@@ -136,10 +136,8 @@ export class GameSave {
         }
 
         if (Math.abs(player1Rating - player2Rating) >= 50) {
-            console.log("Not Ideal")
             return false;
         }
-        console.log("Good to go")
         return true;
     }
 

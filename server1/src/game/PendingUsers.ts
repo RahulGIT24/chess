@@ -12,7 +12,6 @@ export class PendingUser {
 
     constructor() {
         this.pendingUsers = [];
-        console.log(this.pendingUsers);
     }
 
     enque(args: IPending) {

@@ -51,7 +51,6 @@ const columns = [
     columnHelper.accessor("players", {
         header: () => "Players",
         cell: (info) => {
-            console.log(info.getValue())
             const players = info.getValue() as {
                 color: string;
                 id: string;

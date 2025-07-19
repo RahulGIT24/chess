@@ -111,7 +111,7 @@ export class GameManager {
         return;
     }
 
-    removeUser(socket: WebSocket) {
+    async removeUser(socket: WebSocket) {
         GameManager.pendingUser.deque({ socket: socket })
         this.users = this.users.filter(user => user.socket !== socket)
         const game = this.games.find(g => g.player1.socket === socket || g.player2.socket === socket);
@@ -128,11 +128,11 @@ export class GameManager {
                 game.player1.socket.send(JSON.stringify({ type: OPPO_DISCONNECT }));
             }
         }
+        await game.saveGame()
     }
 
     private addHandler(socket: WebSocket) {
         socket.on("message", async (data) => {
-            console.log("RAW", socket.url, data);
             const message = JSON.parse(data.toString())
             const username = message.name;
             if (message.type === INIT_GAME) {
@@ -296,7 +296,6 @@ export class GameManager {
             true
         );
 
-        // console.log(parsedGame)
         // event to remove game
         game.on("removeGame", async (gameId: string) => {
             await this.removeGame(gameId)

@@ -191,7 +191,7 @@ export class Game extends EventEmitter {
           payload: { message: "Illegal Move" },
         })
       );
-      console.log(error)
+      // console.log(error)
       return;
     }
   }

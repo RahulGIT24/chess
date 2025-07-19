@@ -96,7 +96,6 @@ const ChessBoard = ({
           // If it's a pawn and reaches the last rank, set promotion
           setPromotion(move);
         } else {
-          console.log('moving')
           // Regular move logic
           socket?.send(
             JSON.stringify({

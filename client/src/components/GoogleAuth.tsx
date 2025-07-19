@@ -21,7 +21,6 @@ const GoogleAuth = () => {
       let user = res.data.user;
       user.accessToken = res.data.accessToken;
       user.refreshToken = res.data.refreshToken;
-      console.log(user)
       dispatch(setUser(user))
       dispatch(setAuthenticated(true))
       toast.success(res.message);
