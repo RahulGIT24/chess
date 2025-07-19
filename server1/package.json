@@ -7,6 +7,7 @@
     "build": "tsc -b",
     "dev": "nodemon dist/index.js",
     "prod": "node dist/index.js",
+    "analyze-test":"node dist/game/analyzer.js",
     "watch": "tsc -w"
   },
   "keywords": [],

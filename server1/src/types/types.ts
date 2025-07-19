@@ -30,6 +30,7 @@ export interface Pending extends IPending {
 
 export interface SaveInitGame {
   id: string;
+  pgn:string
   whiteId: string;
   blackId: string;
   duration: number;

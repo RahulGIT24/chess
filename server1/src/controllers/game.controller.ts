@@ -1,6 +1,9 @@
+// import { ChessAnalyzer } from "../game/ChessAnalyzer";
 import { ApiResponse } from "../lib/ApiResponse";
 import { asyncHandler } from "../lib/asyncHandler";
 import { prisma } from "../lib/prisma";
+
+// const analyzer = new ChessAnalyzer()
 
 export const getGame = asyncHandler(async (req, res) => {
     try {
@@ -128,3 +131,37 @@ export const getGamesOfUser = asyncHandler(async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
     }
 })
+
+// export const getGameReviews= (asyncHandler(async(req,res)=>{
+//     try {
+//         const gameId = req.query.id;
+//         if(!gameId) throw new ApiResponse(400,null,'Please provide game id')
+
+//         const game = await prisma.game.findUnique({
+//             where:{
+//                 id:gameId
+//             },
+//             select:{
+//                 pgn:true
+//             }
+//         })
+
+//         if(!game){
+//             throw new ApiResponse(404,null,"Game not found")
+//         }   
+
+//         if(!game.pgn){
+//             return res.status(200).json(new ApiResponse(200,null,'Game is going on'))
+//         }
+//         await analyzer.init();
+//         const analyzedGame = await analyzer.analyzePGN(game.pgn)
+
+//         return res.status(200).json(new ApiResponse(200,analyzedGame,"Game Reviews Fetched"))
+//     } catch (error) {
+//         console.log(error);
+//         if (error instanceof ApiResponse) {
+//             return res.status(error.statuscode).json(error);
+//         }
+//         return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+//     }
+// }))

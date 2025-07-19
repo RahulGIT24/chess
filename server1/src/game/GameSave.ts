@@ -24,7 +24,7 @@ export class GameSave {
         }
     }
 
-    async handleResign(playerid: string, fen: string, moves: number, moveHistory: string[]) {
+    async handleResign(playerid: string, fen: string, moves: number, moveHistory: string[],pgn:string) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -45,7 +45,8 @@ export class GameSave {
                         resign: resignedPlayer,
                         fen: fen,
                         moves: moves,
-                        moveHistory: JSON.stringify(moveHistory)
+                        moveHistory: JSON.stringify(moveHistory),
+                        pgn
                     }
                 })
                 await this.updateRating({ winner, loser: resignedPlayer })
@@ -55,7 +56,7 @@ export class GameSave {
         }
     }
 
-    async handleWin(playerid: string, fen: string, moves: number, moveHistory: string[]) {
+    async handleWin(playerid: string, fen: string, moves: number, moveHistory: string[],pgn:string) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -73,7 +74,8 @@ export class GameSave {
                         winner: winner,
                         fen: fen,
                         moves: moves,
-                        moveHistory: JSON.stringify(moveHistory)
+                        moveHistory: JSON.stringify(moveHistory),
+                        pgn
                     }
                 })
                 await this.updateRating({ winner: winner, loser })
@@ -83,7 +85,7 @@ export class GameSave {
         }
     }
 
-    async handleDraw(fen: string, moves: number, moveHistory: string[]) {
+    async handleDraw(fen: string, moves: number, moveHistory: string[],pgn:string) {
         try {
             if (this.id) {
                 await prisma.game.update({
@@ -94,7 +96,8 @@ export class GameSave {
                         draw: true,
                         fen: fen,
                         moves: moves,
-                        moveHistory: JSON.stringify(moveHistory)
+                        moveHistory: JSON.stringify(moveHistory),
+                        pgn
                     }
                 })
             }

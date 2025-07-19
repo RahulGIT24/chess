@@ -32,6 +32,7 @@ model Game {
   moveHistory String? @default("[]")
   moves        Int?  @default(0)
   draw       Boolean  @default(false)
+  pgn        String
   whiteTimeLeft Int
   blackTimeLeft Int
   duration   Int
