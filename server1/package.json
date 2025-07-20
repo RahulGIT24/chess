@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "dev": "nodemon dist/index.js",
     "prod": "node dist/index.js",
-    "analyze-test":"node dist/game/analyzer.js",
+    "analyze-test": "node dist/game/analyzer.js",
     "watch": "tsc -w"
   },
   "keywords": [],
@@ -25,7 +25,6 @@
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.9",
-    "stockfish": "^16.0.0",
     "uuid": "^11.0.5",
     "ws": "^8.18.0",
     "zod": "^3.24.1"

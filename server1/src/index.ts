@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 import cors from "cors"
 import express from "express"
 import cookieParser from "cookie-parser"
+import { fork } from 'child_process';
 
 const app = express();
 
@@ -60,6 +61,7 @@ wss.on('connection', function connection(ws) {
 import authRoutes from "./routes/auth.routes.js"
 import gameRoutes from "./routes/game.route.js"
 import { prisma } from './lib/prisma';
+import { gameAnalyzeScheduler } from './game/scheduler';
 
 app.use("/auth", authRoutes)
 app.use("/game", gameRoutes)
@@ -67,3 +69,7 @@ app.use("/game", gameRoutes)
 app.listen(PORT, () => {
     console.log(`Listening on PORT ${PORT}`)
 })
+
+import path from 'path';
+
+fork(path.resolve(__dirname, './game/scheduler.js'));

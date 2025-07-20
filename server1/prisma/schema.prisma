@@ -8,46 +8,77 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
+  id             String       @id @default(uuid())
+  email          String       @unique
   name           String
   refreshToken   String?
   profilePicture String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  gamesAsWhite Game[]   @relation("WhitePlayer")
-  gamesAsBlack Game[]   @relation("BlackPlayer")
-  winner         Game[]   @relation("winner")
-  resign         Game[]   @relation("resign")
-  rating         Rating[] @relation("rating")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  gamesAsWhite   Game[]       @relation("WhitePlayer")
+  gamesAsBlack   Game[]       @relation("BlackPlayer")
+  winner         Game[]       @relation("winner")
+  resign         Game[]       @relation("resign")
+  rating         Rating[]     @relation("rating")
+  reviewsOfWhite GameReview[] @relation("WhitePlayer")
+  reviewsOfBlack GameReview[] @relation("BlackPlayer")
 }
 
 model Game {
-  id         String   @id @default(uuid())
-  whiteId    String
-  blackId    String
-  winner     String?  
-  resign     String?  
-  fen        String?  @default("")
-  moveHistory String? @default("[]")
-  moves        Int?  @default(0)
-  draw       Boolean  @default(false)
-  pgn        String
+  id            String      @id @default(uuid())
+  whiteId       String
+  blackId       String
+  winner        String?
+  resign        String?
+  fen           String?     @default("")
+  moveHistory   String?     @default("[]")
+  moves         Int?        @default(0)
+  draw          Boolean     @default(false)
+  pgn           String
   whiteTimeLeft Int
   blackTimeLeft Int
-  duration   Int
-  whiteRef   User     @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: Cascade)
-  blackRef   User     @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: Cascade)
-  winnerRef  User?    @relation("winner", fields: [winner], references: [id])
-  resignRef  User?    @relation("resign", fields: [resign], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  duration      Int
+  whiteRef      User        @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: Cascade)
+  blackRef      User        @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: Cascade)
+  winnerRef     User?       @relation("winner", fields: [winner], references: [id])
+  resignRef     User?       @relation("resign", fields: [resign], references: [id])
+  gamereview    GameReview? @relation("reviews")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
+model GameReview {
+  id            String @id @default(uuid())
+  gameId        String @unique
+  whiteId       String
+  blackId       String
+  status        String @default("running")
+  accuracyBlack Int    @default(0)
+  accuracyWhite Int    @default(0)
+  whiteRef      User   @relation("WhitePlayer", fields: [whiteId], references: [id], onDelete: Cascade)
+  blackRef      User   @relation("BlackPlayer", fields: [blackId], references: [id], onDelete: Cascade)
+  gameRef       Game   @relation("reviews", fields: [gameId], references: [id])
+  moveReviewRef MoveReview[] @relation("moveReviews")
+}
+
+model MoveReview {
+  id            String @id @default(uuid())
+  gameReviewId  String
+  move          Int
+  color         String
+  bestMove      String?
+  evalBefore    Int?   
+  san           String
+  evalAfter     Int?
+  centipawnLoss Int?
+  moveAccuracy  String?
+  label         String?
+  gameReview    GameReview @relation("moveReviews",fields: [gameReviewId],references: [id],onDelete: Cascade)
+}
 
 model Rating {
-  id String @id @default(uuid())
-  rating Int @default(500)
-  player String @unique
-  playerRef User @relation("rating",fields: [player],references: [id], onDelete: Cascade)
+  id        String @id @default(uuid())
+  rating    Int    @default(500)
+  player    String @unique
+  playerRef User   @relation("rating", fields: [player], references: [id], onDelete: Cascade)
 }

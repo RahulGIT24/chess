@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { SaveInitGame } from "../types/types";
+import { SaveInitGame, MoveReview } from "../types/types";
 
 export class GameSave {
     private id: string | null;
@@ -24,7 +24,7 @@ export class GameSave {
         }
     }
 
-    async handleResign(playerid: string, fen: string, moves: number, moveHistory: string[],pgn:string) {
+    async handleResign(playerid: string, fen: string, moves: number, moveHistory: string[], pgn: string) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -56,7 +56,7 @@ export class GameSave {
         }
     }
 
-    async handleWin(playerid: string, fen: string, moves: number, moveHistory: string[],pgn:string) {
+    async handleWin(playerid: string, fen: string, moves: number, moveHistory: string[], pgn: string) {
         try {
             if (this.id) {
                 const game = await prisma.game.findFirst({ where: { id: this.id as string } })
@@ -85,7 +85,7 @@ export class GameSave {
         }
     }
 
-    async handleDraw(fen: string, moves: number, moveHistory: string[],pgn:string) {
+    async handleDraw(fen: string, moves: number, moveHistory: string[], pgn: string) {
         try {
             if (this.id) {
                 await prisma.game.update({
@@ -124,7 +124,7 @@ export class GameSave {
             }),
             prisma.rating.update({
                 where: { player: loser },
-                data: { rating: loserT.rating - 8 <= 0 ? 0 : loserT.rating - 8}
+                data: { rating: loserT.rating - 8 <= 0 ? 0 : loserT.rating - 8 }
             })
         ]);
     }
@@ -157,6 +157,43 @@ export class GameSave {
             return playerRating.rating
         }
         return null;
+    }
+
+    async saveGameReviews(reviewId: string, moveReviewArr: MoveReview[], accuracyBlack: number, accuracyWhite: number) {
+        try {
+            const gameReview = await prisma.gameReview.findUnique({
+                where: {
+                    id: reviewId
+                }
+            })
+
+            if (!gameReview) {
+                return false
+            }
+
+            await prisma.gameReview.update({
+                where: {
+                    id: reviewId
+                },
+                data: {
+                    accuracyBlack,
+                    accuracyWhite,
+                    status: "completed"
+                }
+            })
+
+            const result = await prisma.moveReview.createMany({
+                data: moveReviewArr,
+            });
+
+            if (result.count === moveReviewArr.length) {
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.log(error)
+            return false;
+        }
     }
 
     setid(id: string) {

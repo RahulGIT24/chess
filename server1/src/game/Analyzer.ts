@@ -1,26 +1,32 @@
 import { spawn } from 'child_process';
 import { Chess, Move } from 'chess.js';
+import { MoveReview } from "../types/types"
+import { GameSave } from './GameSave';
 
 export class Analyzer {
     private readonly chess: Chess;
     private readonly stockfishpath: string
-    private readonly engine: any
-    private readonly depth: number
+    private readonly depth: number;
+    private finalReview: MoveReview[]
+    public static gameDBController = new GameSave()
 
     constructor() {
         this.chess = new Chess();
         this.stockfishpath = process.env.STOCKFISH_PATH as string;
-        this.engine = spawn(this.stockfishpath)
         this.depth = 12
+        this.finalReview = []
+        // this.blackGameReview=[]
     }
 
     private async analyzePosition(fen: string): Promise<{ eval: number | null, bestMove: string | null }> {
         return new Promise((resolve) => {
+            // Spawn a new Stockfish process for each call
+            const engine = spawn(this.stockfishpath);
             let lastEval: number | null = null;
             let bestMove: string | null = null;
             let resolved = false;
 
-            this.engine.stdout.on('data', (data:any) => {
+            engine.stdout.on('data', (data: any) => {
                 const lines = data.toString().split('\n');
                 for (const line of lines) {
                     if (line.startsWith('info depth')) {
@@ -31,23 +37,27 @@ export class Analyzer {
                         bestMove = line.split(' ')[1];
                         if (!resolved) {
                             resolved = true;
-                            this.engine.kill();
+                            engine.kill();
                             resolve({ eval: lastEval, bestMove });
                         }
                     }
                 }
             });
+
+            // Timeout resolution
             setTimeout(() => {
                 if (!resolved) {
-                    this.engine.kill();
+                    engine.kill();
                     resolve({ eval: lastEval, bestMove });
                 }
             }, 6000);
-            this.engine.stdin.write('uci\n');
-            this.engine.stdin.write(`position fen ${fen}\n`);
-            this.engine.stdin.write(`go depth ${this.depth}\n`);
+
+            engine.stdin.write('uci\n');
+            engine.stdin.write(`position fen ${fen}\n`);
+            engine.stdin.write(`go depth ${this.depth}\n`);
         });
     }
+
 
     private async getMoveLabel(loss: number, isTopMove: boolean, isBrilliant = false) {
         if (isTopMove) {
@@ -60,7 +70,7 @@ export class Analyzer {
         return "Blunder";
     }
 
-    public async analyzePGNGame(pgnString: string) {
+    public async analyzePGNGame(pgnString: string, gameReviewId: string, gameId: string) {
         if (!this.stockfishpath) {
             console.log("Please provide Stockfish Path")
         }
@@ -74,8 +84,6 @@ export class Analyzer {
         let accuracyBlack = 0;
         let countWhite = 0;
         let countBlack = 0;
-
-        const finalReviewArray: any[] = [];
 
         for (const move of moves) {
             const justMoved = this.chess.turn() === 'b' ? 'w' : 'b';
@@ -119,29 +127,35 @@ export class Analyzer {
                 }
             }
 
-            finalReviewArray.push({
+            this.finalReview.push({
                 move: moveNum,
-                color: justMoved === 'w' ? 'White' : 'Black',
+                color: justMoved === 'w' ? "white" : "black",
                 san: move.san,
                 bestMove,
+                gameReviewId,
                 evalBefore,
                 evalAfter,
                 centipawnLoss: loss,
                 moveAccuracy: moveAccuracy !== null ? moveAccuracy.toFixed(2) : null,
                 label,
-            });
-
+            })
             fenBefore = fenAfter;
             moveNum++;
         }
 
         // Output results
-        const avgWhite = countWhite ? (accuracyWhite / countWhite).toFixed(2) : 'n/a';
-        const avgBlack = countBlack ? (accuracyBlack / countBlack).toFixed(2) : 'n/a';
+        const avgWhite = Number(countWhite ? (accuracyWhite / countWhite).toFixed(2) : 0);
+        const avgBlack = Number(countBlack ? (accuracyBlack / countBlack).toFixed(2) : 0);
+        await this.pushToDatabase(gameReviewId, avgBlack, avgWhite, gameId)
         return {
             accuracyWhite: avgWhite,
             accuracyBlack: avgBlack,
-            finalReviewArray
+            gameReviewId,
+            finalReview: this.finalReview
         }
+    }
+
+    private async pushToDatabase(gameReviewId: string, avgBlack: number, avgWhite: number, gameId: string) {
+        Analyzer.gameDBController.saveGameReviews(gameReviewId, this.finalReview, avgBlack, avgWhite)
     }
 }
