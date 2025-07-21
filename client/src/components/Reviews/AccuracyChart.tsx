@@ -86,18 +86,6 @@ export const AccuracyChart: React.FC<AccuracyChartProps> = ({ whiteAccuracy, bla
         </div>
       </div>
       
-      {/* Comparison */}
-      <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-        <div className="text-center">
-          <div className="text-sm text-green-700 font-medium mb-1">Winner by Accuracy</div>
-          <div className="text-lg font-bold text-green-800">
-            {blackAccuracy > whiteAccuracy ? 'Black Player' : 'White Player'} 
-            <span className="text-green-600 ml-2">
-              (+{Math.abs(blackAccuracy - whiteAccuracy).toFixed(1)}%)
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

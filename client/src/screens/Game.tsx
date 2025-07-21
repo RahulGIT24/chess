@@ -207,7 +207,7 @@ const Game = () => {
               setMyTimer(blackTime)
               setOpponentTimer(whiteTime)
             }
-            if(chessRef.current.isCheck()){
+            if(chessRef.current.isCheck() && !chessRef.current.isGameOver()){
               check()
             }else{
               pieceMove();
