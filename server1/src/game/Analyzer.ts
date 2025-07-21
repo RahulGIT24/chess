@@ -86,7 +86,7 @@ export class Analyzer {
         let countBlack = 0;
 
         for (const move of moves) {
-            const justMoved = this.chess.turn() === 'b' ? 'w' : 'b';
+            const justMoved = this.chess.turn();
 
             // Analyze position before the move
             const { eval: evalBefore, bestMove } = await this.analyzePosition(fenBefore);

@@ -145,6 +145,10 @@ export const getGameReviews = (asyncHandler(async (req, res) => {
                     { blackId: userId },
                     { whiteId: userId }
                 ]
+            },
+            include: {
+                blackRef: true,
+                whiteRef: true
             }
         })
 
@@ -152,9 +156,32 @@ export const getGameReviews = (asyncHandler(async (req, res) => {
             return res.status(200).json(new ApiResponse(200, null, 'Game review is in progress. Please wait for sometime.'))
         }
 
-        if (alreadyReviewed?.id) {
-            /// just give game review data to user
-            return res.status(200).json(new ApiResponse(200, {}, "Game Already Reviewed"))
+        if (alreadyReviewed?.id && alreadyReviewed.status === "completed") {
+            const black = alreadyReviewed.blackRef.name;
+            const white = alreadyReviewed.whiteRef.name;
+            const blackImg = alreadyReviewed.blackRef.profilePicture
+            const whiteImg = alreadyReviewed.whiteRef.profilePicture
+            const id = alreadyReviewed.gameId
+            const accuracyWhite = alreadyReviewed.accuracyWhite
+            const accuracyBlack = alreadyReviewed.accuracyBlack
+
+            const moveReviews = await prisma.moveReview.findMany({
+                where: {
+                    gameReviewId: alreadyReviewed.id
+                }
+            })
+
+            let moves = moveReviews.length;
+
+            const game = {
+                black, white, id, moves, accuracyBlack, accuracyWhite,blackImg, whiteImg
+            }
+
+            const finalRes = {
+                game, moveReviews: moveReviews
+            }
+
+            return res.status(200).json(new ApiResponse(200, finalRes, "Game Already Reviewed"))
         }
 
         const game = await prisma.game.findUnique({

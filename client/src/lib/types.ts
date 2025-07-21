@@ -139,3 +139,30 @@ export type Game = {
     updatedAt: string
     message?: string
 }
+
+export interface GameReview {
+  game: {
+    id: string;
+    white: string;
+    black: string;
+    moves: number;
+    accuracyWhite: number;
+    accuracyBlack: number;
+    blackImg:string,
+    whiteImg:string
+  };
+  moveReviews: MoveReview[];
+}
+
+export interface MoveReview {
+  id:string
+  move: number;
+  color: 'white' | 'black';
+  san: string;
+  bestMove: string;
+  evalBefore: number;
+  evalAfter: number;
+  centipawnLoss: number;
+  moveAccuracy: number;
+  label: 'Best' | 'Excellent' | 'Good' | 'Inaccuracy' | 'Mistake' | 'Blunder';
+}

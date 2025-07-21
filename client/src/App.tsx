@@ -3,6 +3,7 @@ import Landing from "./screens/Landing"
 import Game from "./screens/Game"
 import GameList from "./screens/GameList"
 import ViewGame from "./screens/ViewGame"
+import { GameReviewScreen } from "./screens/GameReview"
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/game" element={<Game/>}/>
         <Route path="/mygames" element={<GameList/>}/>
         <Route path="/game/:id" element={<ViewGame/>}/>
+        <Route path="/gamereview/:id" element={<GameReviewScreen/>}/>
       </Routes>
     </BrowserRouter>
   )

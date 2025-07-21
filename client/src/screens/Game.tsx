@@ -211,7 +211,6 @@ const Game = () => {
               check()
             }else{
               pieceMove();
-
             }
             setBoard(chessRef.current.board());
             setMyturn(currentColor === myColor.current);

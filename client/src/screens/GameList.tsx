@@ -5,7 +5,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { ArrowLeftCircle, Clock, History, Loader2 } from "lucide-react";
+import { ArrowLeftCircle, Clock, Eye, History, Loader2, SearchCheckIcon } from "lucide-react";
 import { apiCall } from "../lib/apiCall";
 import Pagination from "../components/Pagination";
 import { useNavigate } from "react-router-dom";
@@ -78,7 +78,7 @@ const columns = [
         cell: info => {
             const status = info.getValue()
             return (
-                <p className={`${status === "You Won" && "text-green-700"} ${status === "You Lost" && "text-red-500"} ${status === "Draw" && "text-blue-500"} font-semibold`}>
+                <p className={`${status === "You Won" && "text-[#60de1c]"} ${status === "You Lost" && "text-red-500"} ${status === "Draw" && "text-blue-500"} font-semibold`}>
                     {info.getValue()}
                 </p>
             )
@@ -89,10 +89,18 @@ const columns = [
         cell: info => info.getValue(),
     }),
     columnHelper.accessor('id', {
-        header: 'View Game',
+        header: 'View',
         cell: (info) => {
             return (
-                <a target="_blank" href={`/game/${info.getValue()}`}><button className="bg-green-700 p-2 rounded-xl font-bold px-7 hover:bg-green-500">View</button></a>
+                <a target="_blank" title="View Game" href={`/game/${info.getValue()}`}><Eye color="#69923e"/></a>
+            )
+        },
+    }),
+    columnHelper.accessor('id', {
+        header: 'Review',
+        cell: (info) => {
+            return (
+                <a target="_blank" title="Review Game" href={`/gamereview/${info.getValue()}`}><SearchCheckIcon color="#69923e"/></a>
             )
         },
     }),
@@ -101,7 +109,7 @@ const columns = [
 const GameList: React.FC = () => {
     const [data, _setData] = React.useState(() => [])
     const [loading, setLoading] = useState(false);
-    const [page,setPage] = useState<number>(1);
+    const [page, setPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState(1)
     const navigate = useNavigate()
 
