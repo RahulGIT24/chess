@@ -71,3 +71,5 @@ A real-time chess application built with a modern full-stack architecture. This 
     ```bash
     pnpm run dev
     ``` 
+
+### Make sure while doing setup (without Docker) you have stockfish installed in your system and the path is set in the `.env` file.

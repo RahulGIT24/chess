@@ -1,0 +1,17 @@
+FROM node:23.8.0-bullseye
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y stockfish curl file && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pnpm
+
+COPY server1/package.json server1/pnpm-lock.yaml /app/
+RUN pnpm install
+
+COPY server1/ .
+RUN npx prisma generate
+
+RUN pnpm build
+
+CMD ["sh", "-c", "pnpm run db:migrate && pnpm run start"]

@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=chess
+    ports:
+      - "5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379"
+  
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    ports:
+      - 5173:5173
+    depends_on:
+      - backend
+    environment:
+      - VITE_GOOGLE_CLIENT_ID=220500967971-o6jv40nfan6eipbijbl2tr6e7ts9sfoj.apps.googleusercontent.com
+      - VITE_WS_URL=ws://localhost:5002
+      - VITE_SERVER_URL=http://localhost:5001
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - 5001:5001
+      - 5002:5002
+    depends_on:
+      - redis
+      - db
+    environment:
+      - DATABASE_URL=postgresql://root:root@db:5432/chess
+      - REDIS_PORT=6379
+      - REDIS_HOST=redis
+      - CLIENT_URL=http://localhost:5173
+      - JWT_SECRET=kjkaldjklsajdklas
+      - JWT_SECRET_REFRESH=dfjklfjdsklfjdskl
+      - STOCKFISH_PATH=/usr/games/stockfish
+volumes:
+  postgres-data:
