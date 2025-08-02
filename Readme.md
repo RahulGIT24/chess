@@ -14,6 +14,10 @@ A real-time chess application built with a modern full-stack architecture. This 
 - Integration with Google OAuth for user authentication.
 - Reconnection capabilities to restore game state if a player disconnects.
 
+## Demo Video
+[![Watch the video](/demo/cover.png)](/demo/video.mp4)
+
+
 ## Architecture Overview
 
 - **Frontend**: Built with React and TypeScript, delivering the chessboard UI, move inputs, and clocks.
