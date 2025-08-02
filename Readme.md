@@ -15,7 +15,7 @@ A real-time chess application built with a modern full-stack architecture. This 
 - Reconnection capabilities to restore game state if a player disconnects.
 
 ## Demo Video
-[![Watch the video](/demo/cover.png)](/demo/video.mp4)
+[![Watch the video](/demo/cover.png)](https://drive.google.com/file/d/1p_CTk0e7MLzVxo-iUlNDf7yCG3zCiUZm/view?usp=sharing)
 
 
 ## Architecture Overview
