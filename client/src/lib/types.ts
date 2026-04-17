@@ -1,4 +1,5 @@
 import { Color, PieceSymbol, Square } from "chess.js";
+import { Dispatch, SetStateAction } from "react";
 
 export type ChessBoardProps = {
   board: ({
@@ -6,8 +7,8 @@ export type ChessBoardProps = {
     type: PieceSymbol;
     color: Color;
   } | null)[][];
-  // setBoard: any;
-  chess: any;
+  // setBoard: unknown;
+  chess: unknown;
   myColor: string;
   gamelocked: boolean;
   socket?: WebSocket;
@@ -20,7 +21,7 @@ export interface UserMoves {
 
 export interface ButtonArr {
   text: string;
-  func: any;
+  func: unknown;
   className?: string;
 }
 export interface User {
@@ -40,16 +41,18 @@ export type MoveHistoryComponent = {
   setWaiting?: (arg: boolean) => void;
   socket?: WebSocket;
   gameStarted?: boolean;
-  moveHistory: any;
+  moveHistory: string[];
   offerDraw?: () => void;
   onResign?: () => void;
   waiting?: boolean;
   viewGame?:boolean
+  messages:IMessage[],
+  setMessages:Dispatch<SetStateAction<IMessage[]>>
 };
 
 export type apiCallParams = {
   url: string;
-  data?: any;
+  data?: unknown;
   method: string;
 };
 
@@ -165,4 +168,9 @@ export interface MoveReview {
   centipawnLoss: number;
   moveAccuracy: number;
   label: 'Best' | 'Excellent' | 'Good' | 'Inaccuracy' | 'Mistake' | 'Blunder';
+}
+
+export interface IMessage {
+  sender: string;
+  text: string;
 }

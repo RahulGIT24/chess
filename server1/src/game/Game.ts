@@ -1,6 +1,6 @@
 import { Chess, Square } from "chess.js";
 import WebSocket from "ws";
-import { DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "../lib/messages";
+import { CHAT, DRAW, DRAW_OFFERED, ERROR, GAME_OVER, INIT_GAME, MOVE, OFFER_ACCEPTED, OFFER_REJECTED, RESIGN, TIME_UP } from "../lib/messages";
 import { moveValidator } from "../lib/validators";
 import { GameSave } from "./GameSave";
 import redis from "../redis/RedisService"
@@ -19,7 +19,7 @@ export class Game extends EventEmitter {
   public currentColor: string
   public lastMoveTime: number
   public initialTime: number
-  public skipInitGame?:boolean
+  public skipInitGame?: boolean
 
   constructor(
     player1: Player,
@@ -43,7 +43,7 @@ export class Game extends EventEmitter {
     this.initialTime = initialTime
 
     if (!this.player1.socket || !this.player2.socket) return;
-    if(skipInitGame) return;
+    if (skipInitGame) return;
 
     this.player1.socket.send(
       JSON.stringify({
@@ -88,7 +88,7 @@ export class Game extends EventEmitter {
       whiteTimeLeft: white.timeLeft,
       blackTimeLeft: black.timeLeft,
       duration: initialTime,
-      pgn:""
+      pgn: ""
     }).catch(e => (console.log(e)))
   }
 
@@ -161,7 +161,7 @@ export class Game extends EventEmitter {
         } else {
           winnerId = this.player2.id
         }
-        Game.gameDBController.handleWin(winnerId, this.board.fen(), this.board.history().length, this.board.history(),this.board.pgn()).catch(e => console.log(e))
+        Game.gameDBController.handleWin(winnerId, this.board.fen(), this.board.history().length, this.board.history(), this.board.pgn()).catch(e => console.log(e))
         this.emit("removeGame", this.id);
         return;
       }
@@ -230,6 +230,25 @@ export class Game extends EventEmitter {
       );
     }
     await this.saveGame();
+  }
+
+  sendChatMessage(currSocket: WebSocket, payload: any) {
+    if (this.player1.socket && currSocket != this.player1.socket) {
+      this.player1.socket.send(
+        JSON.stringify({
+          type: CHAT,
+          payload: payload,
+        })
+      );
+    }
+    if (this.player2.socket && currSocket != this.player2.socket) {
+      this.player2.socket.send(
+        JSON.stringify({
+          type: CHAT,
+          payload: payload,
+        })
+      );
+    }
   }
 
   offerDraw(socket: WebSocket) {
@@ -336,7 +355,7 @@ export class Game extends EventEmitter {
         })
       );
     }
-    Game.gameDBController.handleResign(id, this.board.fen(), this.board.history().length, this.board.history(),this.board.pgn()).catch(e => console.log(e))
+    Game.gameDBController.handleResign(id, this.board.fen(), this.board.history().length, this.board.history(), this.board.pgn()).catch(e => console.log(e))
   }
 
   async saveGame() {
