@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Game } from "./Game";
-import { DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, OPPO_DISCONNECT, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
+import { CHAT, DRAW_OFFER_REPLY, ERROR, INIT_GAME, MOVE, OFFER_DRAW, OPPO_DISCONNECT, RECONNECTED, RECONNECTING, RESIGN, TIME_UP } from "../lib/messages";
 import { PendingUser } from "./PendingUsers";
 import { minutesToMilliseconds } from "../lib/timeConstants";
 import { v4 as uuidv4 } from 'uuid';
@@ -215,6 +215,16 @@ export class GameManager {
                     } else {
                         game.drawRejected();
                     }
+                }
+            }
+
+            if (message.type === CHAT) {
+                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
+                if (game) {
+                    game.sendChatMessage(socket,{
+                        type: CHAT,
+                        text: message.text
+                    })
                 }
             }
 
