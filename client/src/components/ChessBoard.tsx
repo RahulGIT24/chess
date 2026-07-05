@@ -108,7 +108,7 @@ const ChessBoard = ({
           setFrom(null);
           setTo(null);
         }
-      } catch (error) {
+      } catch {
         setFrom(null);
         setTo(null);
         return;

@@ -14,7 +14,7 @@ export const useAuth = () => {
             const res = await apiCall({ method: GET, url: "/auth/get-user", data: {} });
             dispatch(setAuthenticated(true));
             dispatch(setUser(res.data));
-        } catch (error) {
+        } catch{
             dispatch(setAuthenticated(false));
             dispatch(setUser(null));
         }

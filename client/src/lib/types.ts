@@ -1,4 +1,4 @@
-import { Color, PieceSymbol, Square } from "chess.js";
+import { Chess, Color, PieceSymbol, Square } from "chess.js";
 import { Dispatch, SetStateAction } from "react";
 
 export type ChessBoardProps = {
@@ -8,7 +8,7 @@ export type ChessBoardProps = {
     color: Color;
   } | null)[][];
   // setBoard: unknown;
-  chess: unknown;
+  chess: Chess;
   myColor: string;
   gamelocked: boolean;
   socket?: WebSocket;
@@ -21,7 +21,7 @@ export interface UserMoves {
 
 export interface ButtonArr {
   text: string;
-  func: unknown;
+  func: ()=>void;
   className?: string;
 }
 export interface User {

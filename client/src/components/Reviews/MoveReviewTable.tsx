@@ -58,8 +58,8 @@ export const MoveReviewTable: React.FC<MoveReviewTableProps> = ({ moveReviews })
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {moveReviews.map((move, index) => (
-              <tr key={move.id} className="hover:bg-green-50 transition-colors duration-200">
+            {moveReviews.map((move,index) => (
+              <tr key={index} className="hover:bg-green-50 transition-colors duration-200">
                 <td className="px-6 py-4 whitespace-nowrap text-lg font-bold text-gray-900">
                   {move.move}
                 </td>

@@ -156,7 +156,7 @@ const ViewGame = () => {
             </div>
             <div className="w-[50vw] h-full flex flex-col items-center">
                 <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
-                    <MoveHistory viewGame={true} moveHistory={JSON.parse(game?.moveHistory as string)} gameStarted={true} waiting={false} />
+                    <MoveHistory viewGame={true} moveHistory={JSON.parse(game?.moveHistory as string)} gameStarted={true} waiting={false} messages={[]} setMessages={()=>{}}/>
 
                     <div className="flex items-center gap-2 mt-4">
                         <button
