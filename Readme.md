@@ -39,7 +39,12 @@ A real-time chess application built with a modern full-stack architecture. This 
 - Reconnection capabilities to restore game state if a player disconnects.
 
 ## Demo Video
-[![Watch the video](/demo/cover.png)](https://drive.google.com/file/d/1p_CTk0e7MLzVxo-iUlNDf7yCG3zCiUZm/view?usp=sharing)
+
+**UI walkthrough (2026 redesign):** [▶ demo/ui-demo.mp4](demo/ui-demo.mp4) — a ~1 minute tour through the landing page, sign-in, live game with synced clocks, winner modal, game history, replay viewer and Stockfish game review.
+
+**Original full demo:**
+
+[![Watch the video](/demo/screenshots//landing-hero.png)](https://drive.google.com/file/d/1diFIrCZbyIIV7gwoPW-PINmcbxOMMTzn/view?usp=sharing)
 
 
 ## Architecture Overview
