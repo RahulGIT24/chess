@@ -6,86 +6,81 @@ interface AccuracyChartProps {
   blackAccuracy: number;
 }
 
+const performance = (accuracy: number) => {
+  if (accuracy >= 80)
+    return {
+      icon: <TrendingUp className="h-4 w-4 text-emerald-400" />,
+      text: "Excellent performance",
+      color: "text-emerald-400",
+    };
+  if (accuracy >= 70)
+    return {
+      icon: <TrendingUp className="h-4 w-4 text-gold-400" />,
+      text: "Good performance",
+      color: "text-gold-400",
+    };
+  return {
+    icon: <TrendingDown className="h-4 w-4 text-red-400" />,
+    text: "Needs improvement",
+    color: "text-red-400",
+  };
+};
+
+const PlayerAccuracy = ({
+  label,
+  swatchClass,
+  accuracy,
+}: {
+  label: string;
+  swatchClass: string;
+  accuracy: number;
+}) => {
+  const perf = performance(accuracy);
+  return (
+    <div className="space-y-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={`h-4 w-4 rounded ${swatchClass}`}></div>
+          <span className="text-sm font-semibold text-cream">{label}</span>
+        </div>
+        <span className="font-mono text-3xl font-bold text-gold-400">{accuracy}%</span>
+      </div>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-gold-600 via-gold-500 to-gold-300 transition-all duration-1000"
+          style={{ width: `${accuracy}%` }}
+        ></div>
+      </div>
+      <div className="flex items-center gap-2">
+        {perf.icon}
+        <span className={`text-xs font-medium ${perf.color}`}>{perf.text}</span>
+      </div>
+    </div>
+  );
+};
+
 export const AccuracyChart: React.FC<AccuracyChartProps> = ({ whiteAccuracy, blackAccuracy }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-300 p-6 mb-6">
-      <div className="flex items-center gap-3 mb-6">
-        <BarChart3 className="w-6 h-6 text-green-600" />
-        <h2 className="text-2xl font-bold text-gray-800">Accuracy Comparison</h2>
+    <div className="panel mb-6 p-8">
+      <div className="mb-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-gold-500/30 bg-gold-500/10">
+          <BarChart3 className="h-5 w-5 text-gold-400" />
+        </span>
+        <h2 className="heading-display text-3xl">Accuracy comparison</h2>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* White Accuracy */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-white border-2 border-gray-400 rounded"></div>
-              <span className="text-gray-700 font-semibold">White Player</span>
-            </div>
-            <span className="text-3xl font-bold text-green-600">{whiteAccuracy}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div 
-              className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-1000 shadow-sm"
-              style={{ width: `${whiteAccuracy}%` }}
-            ></div>
-          </div>
-          <div className="flex items-center gap-2">
-            {whiteAccuracy >= 80 ? (
-              <>
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-green-600 font-medium">Excellent Performance</span>
-              </>
-            ) : whiteAccuracy >= 70 ? (
-              <>
-                <TrendingUp className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-yellow-600 font-medium">Good Performance</span>
-              </>
-            ) : (
-              <>
-                <TrendingDown className="w-4 h-4 text-red-500" />
-                <span className="text-sm text-red-600 font-medium">Needs Improvement</span>
-              </>
-            )}
-          </div>
-        </div>
-        
-        {/* Black Accuracy */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-800 rounded"></div>
-              <span className="text-gray-700 font-semibold">Black Player</span>
-            </div>
-            <span className="text-3xl font-bold text-green-600">{blackAccuracy}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div 
-              className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-1000 shadow-sm"
-              style={{ width: `${blackAccuracy}%` }}
-            ></div>
-          </div>
-          <div className="flex items-center gap-2">
-            {blackAccuracy >= 80 ? (
-              <>
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-green-600 font-medium">Excellent Performance</span>
-              </>
-            ) : blackAccuracy >= 70 ? (
-              <>
-                <TrendingUp className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-yellow-600 font-medium">Good Performance</span>
-              </>
-            ) : (
-              <>
-                <TrendingDown className="w-4 h-4 text-red-500" />
-                <span className="text-sm text-red-600 font-medium">Needs Improvement</span>
-              </>
-            )}
-          </div>
-        </div>
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <PlayerAccuracy
+          label="White player"
+          swatchClass="border border-white/40 bg-cream"
+          accuracy={whiteAccuracy}
+        />
+        <PlayerAccuracy
+          label="Black player"
+          swatchClass="border border-white/20 bg-ink-900"
+          accuracy={blackAccuracy}
+        />
       </div>
-      
     </div>
   );
 };

@@ -1,15 +1,16 @@
 
-const Draw = ({ onClose }:{onClose:()=>void}) => {
+const Draw = ({ onClose }: { onClose: () => void }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="relative bg-white flex flex-col justify-center items-center rounded-2xl p-6 w-[90%] max-w-md shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70 backdrop-blur-sm">
+      <div className="panel relative flex w-[90%] max-w-md animate-fade-up flex-col items-center justify-center p-10">
         <button
-          className="absolute top-3 text-2xl right-3 text-gray-600 hover:text-black"
+          className="absolute right-4 top-3 text-xl text-cream/40 transition-colors hover:text-cream"
           onClick={onClose}
         >
-          X
+          ✕
         </button>
-        <h2 className="text-xl font-bold text-center mb-4 text-black">Game Draw</h2>
+        <span className="mb-4 text-5xl">🤝</span>
+        <h2 className="heading-display text-center text-3xl text-cream">Game drawn</h2>
       </div>
     </div>
   );

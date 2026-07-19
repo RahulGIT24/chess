@@ -15,12 +15,10 @@ const Landing = () => {
   }, [isAuthenticated]);
 
   return (
-    <>
+    <main className="bg-ink-950 text-cream">
       <HeroSection />
-      <section className="min-h-screen bg-zinc-950 text-white px-10 py-20">
-        <FeatureSection />
-      </section>
-    </>
+      <FeatureSection />
+    </main>
   );
 };
 

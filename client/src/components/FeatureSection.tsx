@@ -1,312 +1,187 @@
-import { Github, Linkedin } from "lucide-react";
-import { motion, useScroll, useTransform } from "motion/react";
-import { useMemo, useRef } from "react";
+import { Github, Linkedin, Clock3, Swords, Timer, Microscope, PlaySquare, History, ShieldCheck } from "lucide-react";
+import { motion } from "motion/react";
+import { ReactNode } from "react";
 
-const ITEM_WIDTH = 420;
-const GAP = 32;
+interface Feature {
+  icon: ReactNode;
+  label: string;
+  description: string;
+  span: string;
+  accent?: boolean;
+}
+
+const features: Feature[] = [
+  {
+    icon: <Clock3 className="h-6 w-6" />,
+    label: "Real-Time Clock Synchronization",
+    description:
+      "Game clocks stay perfectly synced across devices — and keep ticking server-side even if a player disconnects mid-game.",
+    span: "lg:col-span-7",
+    accent: true,
+  },
+  {
+    icon: <Swords className="h-6 w-6" />,
+    label: "Rating-Based Matchmaking",
+    description: "Get paired with opponents at your level and watch your rating move with every result.",
+    span: "lg:col-span-5",
+  },
+  {
+    icon: <Timer className="h-6 w-6" />,
+    label: "Multiple Time Controls",
+    description: "Bullet, blitz, rapid or classical — from 1 to 60 minutes, play the tempo you love.",
+    span: "lg:col-span-4",
+  },
+  {
+    icon: <Microscope className="h-6 w-6" />,
+    label: "Advanced Game Review",
+    description:
+      "Every finished game is analyzed by Stockfish: accuracy scores, centipawn loss, and a verdict on every single move — from brilliant to blunder.",
+    span: "lg:col-span-8",
+    accent: true,
+  },
+  {
+    icon: <PlaySquare className="h-6 w-6" />,
+    label: "Interactive Game Replay",
+    description: "Step through any past game move by move, at your own speed.",
+    span: "lg:col-span-4",
+  },
+  {
+    icon: <History className="h-6 w-6" />,
+    label: "Complete Game History",
+    description: "Every game you play is stored forever — results, ratings and full move sheets.",
+    span: "lg:col-span-4",
+  },
+  {
+    icon: <ShieldCheck className="h-6 w-6" />,
+    label: "Server-Side Validation",
+    description: "Every move is verified on the server. No illegal moves, no tampering — fair play, guaranteed.",
+    span: "lg:col-span-4",
+  },
+];
 
 export default function FeatureSection() {
-  const items = useMemo(() => {
-    return [
-      {
-        id: 1,
-        label: "Real-Time Clock Synchronization",
-        description: "Perfectly synced game clocks across all devices",
-        image: "../../src/assets/f1.png",
-        gradient: "from-violet-500 to-purple-600",
-      },
-      {
-        id: 2,
-        label: "Rating-Based Matchmaking",
-        description: "Find opponents at your skill level instantly",
-        image: "../../src/assets/f2.png",
-        gradient: "from-purple-500 to-pink-600",
-      },
-      {
-        id: 3,
-        label: "Multiple Time Controls",
-        description: "Blitz, rapid, classical - play your way",
-        image: "../../src/assets/f3.png",
-        gradient: "from-pink-500 to-rose-600",
-      },
-      {
-        id: 4,
-        label: "Advanced Game Review",
-        description: "Deep analysis powered by AI insights",
-        image: "../../src/assets/f4.png",
-        gradient: "from-rose-500 to-orange-600",
-      },
-      {
-        id: 5,
-        label: "Interactive Game Replay",
-        description: "Review every move with detailed annotations",
-        image: "../../src/assets/f5.png",
-        gradient: "from-orange-500 to-amber-600",
-      },
-      {
-        id: 6,
-        label: "Complete Game History",
-        description: "Track your progress over time",
-        image: "../../src/assets/f6.png",
-        gradient: "from-amber-500 to-yellow-600",
-      },
-      {
-        id: 7,
-        label: "Server-Side Validation",
-        description: "Guaranteed fair play with move verification",
-        image: "../../src/assets/f7.png",
-        gradient: "from-cyan-500 to-blue-600",
-      },
-    ];
-  }, []);
-
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const totalDistance = (items.length - 1) * (ITEM_WIDTH + GAP);
-  const x = useTransform(scrollYProgress, [0, 1], [0, -totalDistance]);
-
   return (
-    <div className="relative bg-gradient-to-b from-black via-zinc-950 to-black">
-      {/* Header Section */}
-      <section className="relative py-32 overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(120,119,198,0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(14,165,233,0.1),transparent_50%)]" />
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+    <div id="features" className="relative bg-ink-950">
+      {/* Header */}
+      <section className="relative overflow-hidden py-28">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(210,165,76,0.08),transparent_55%)]" />
+        <div className="relative z-10 mx-auto max-w-7xl px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white/70 text-sm font-medium mb-8">
-              <span className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 animate-pulse" />
-              Features
+            <div className="chip mb-8">
+              <span className="h-2 w-2 animate-pulse-soft rounded-full bg-gold-400" />
+              Built for serious play
             </div>
-
-            {/* Title */}
-            <h2 className="text-7xl md:text-8xl font-bold text-white font-serif mb-6 tracking-tight">
-              Everything You Need
+            <h2 className="heading-display mb-6 text-5xl md:text-7xl">
+              Everything you need,
+              <br />
+              <span className="gold-text italic">nothing you don't.</span>
             </h2>
-            
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-white/60 max-w-3xl mx-auto font-light">
-              Professional-grade features designed for chess players of all levels
+            <p className="mx-auto max-w-2xl text-lg font-light text-cream/55 md:text-xl">
+              Professional-grade infrastructure under a board that gets out of your way.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Horizontal Scroll Gallery */}
-      <div ref={containerRef} className="scroll-container">
-        <div className="sticky-wrapper">
-          <motion.div className="gallery" style={{ x }}>
-            {items.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="gallery-item group"
-                style={{
-                  "--item-image": `url(${item.image})`,
-                } as React.CSSProperties}
-              >
-                {/* Card background with glassmorphism */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-3xl" />
-                
-                {/* Image background */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center rounded-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
-                  style={{ backgroundImage: `url(${item.image})` }}
-                />
-                
-                {/* Gradient overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-500 rounded-3xl mix-blend-overlay`} />
-                
-                {/* Vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-3xl" />
-                
-                {/* Content */}
-                <div className="relative h-full flex flex-col justify-between p-8 z-10">
-                  {/* Number badge */}
-                  <div className="inline-flex">
-                    <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white/90 text-sm font-mono font-semibold">
-                      {String(item.id).padStart(2, '0')}
-                    </span>
-                  </div>
-                  
-                  {/* Text content */}
-                  <div className="space-y-3">
-                    <h3 className="text-3xl font-bold text-white leading-tight group-hover:translate-y-[-4px] transition-transform duration-300">
-                      {item.label}
-                    </h3>
-                    <p className="text-white/70 text-base font-light leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
+      {/* Bento grid */}
+      <section className="mx-auto max-w-7xl px-6 pb-28">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-12">
+          {features.map((f, index) => (
+            <motion.div
+              key={f.label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.6, delay: (index % 3) * 0.1 }}
+              className={`group relative overflow-hidden rounded-3xl border p-8 transition-colors duration-300 md:col-span-1 ${f.span} ${
+                f.accent
+                  ? "border-gold-500/20 bg-gradient-to-br from-gold-500/[0.08] to-transparent hover:border-gold-500/40"
+                  : "border-white/[0.07] bg-white/[0.02] hover:border-white/[0.16]"
+              }`}
+            >
+              {/* Hover glow */}
+              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gold-500/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
+
+              <div className="relative z-10 flex h-full flex-col gap-5">
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
+                      f.accent
+                        ? "border-gold-500/30 bg-gold-500/15 text-gold-300"
+                        : "border-white/10 bg-white/[0.05] text-gold-400"
+                    }`}
+                  >
+                    {f.icon}
+                  </span>
+                  <span className="font-mono text-xs text-cream/25">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </div>
-
-                {/* Hover glow effect */}
-                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
-              </motion.div>
-            ))}
-          </motion.div>
+                <div className="mt-auto space-y-2.5">
+                  <h3 className="text-xl font-semibold leading-snug text-cream">
+                    {f.label}
+                  </h3>
+                  <p className="text-sm font-light leading-relaxed text-cream/55">
+                    {f.description}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Footer Section */}
-      <section className="relative py-32 overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(120,119,198,0.1),transparent_70%)]" />
-        
+      {/* Footer */}
+      <footer className="relative overflow-hidden border-t border-white/[0.06] py-20">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(210,165,76,0.06),transparent_60%)]" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-12"
+          className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 text-center"
         >
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          
-          {/* Author section */}
-          <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-white/90">
-              Created by Rahul Gupta
-            </h3>
-            
-            {/* Social links */}
-            <div className="flex justify-center items-center gap-4">
-              <motion.a
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold-500/30 bg-gold-500/10 text-xl text-gold-400">
+              ♞
+            </span>
+            <span className="font-display text-xl text-cream">Chess Arena</span>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-cream/60">Created by Rahul Gupta</p>
+            <div className="flex items-center justify-center gap-3">
+              <a
                 href="https://github.com/RahulGIT24"
                 target="_blank"
                 rel="noopener noreferrer"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all duration-300 group"
                 title="GitHub"
+                className="group flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-white/[0.08]"
               >
-                <Github className="w-7 h-7 text-white/70 group-hover:text-white transition-colors" />
-              </motion.a>
-              
-              <motion.a
+                <Github className="h-5 w-5 text-cream/60 transition-colors group-hover:text-gold-300" />
+              </a>
+              <a
                 href="https://www.linkedin.com/in/rahul-gupta-142a85277/"
                 target="_blank"
                 rel="noopener noreferrer"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all duration-300 group"
                 title="LinkedIn"
+                className="group flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-white/[0.08]"
               >
-                <Linkedin className="w-7 h-7 text-white/70 group-hover:text-white transition-colors" />
-              </motion.a>
+                <Linkedin className="h-5 w-5 text-cream/60 transition-colors group-hover:text-gold-300" />
+              </a>
             </div>
           </div>
 
-          {/* Copyright */}
-          <p className="text-white/40 text-sm font-light">
-            © 2026 Chess Platform. All rights reserved.
+          <p className="text-xs font-light text-cream/30">
+            © 2026 Chess Arena. All rights reserved.
           </p>
         </motion.div>
-      </section>
-
-      <StyleSheet />
+      </footer>
     </div>
-  );
-}
-
-function StyleSheet() {
-  return (
-    <style>{`
-      body {
-        overflow-x: hidden;
-      }
-
-      .scroll-container {
-        height: 300vh;
-        position: relative;
-      }
-
-      .sticky-wrapper {
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        max-width: 100vw;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        overflow: hidden;
-        padding: 0 max(2rem, calc((100vw - 420px) / 2));
-      }
-
-      .gallery {
-        display: flex;
-        gap: 32px;
-        will-change: transform;
-      }
-
-      .gallery-item {
-        flex-shrink: 0;
-        width: 420px;
-        height: 560px;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-        transition: transform 0.3s ease;
-      }
-
-      .gallery-item:hover {
-        transform: translateY(-8px);
-      }
-
-      @media (max-width: 768px) {
-        .sticky-wrapper {
-          padding: 0 1rem;
-        }
-
-        .gallery {
-          gap: 20px;
-        }
-
-        .gallery-item {
-          width: 320px;
-          height: 450px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .gallery-item {
-          width: 280px;
-          height: 400px;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .gallery {
-          transform: none !important;
-        }
-        .scroll-container {
-          height: auto;
-        }
-        .sticky-wrapper {
-          position: relative;
-          height: auto;
-          overflow-x: auto;
-          padding: 50px 1rem;
-        }
-        .gallery-item:hover {
-          transform: none;
-        }
-      }
-    `}</style>
   );
 }

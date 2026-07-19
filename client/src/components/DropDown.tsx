@@ -12,13 +12,13 @@ const DropDown = ({ selected, setSelected, options, classname }: TimeDropdownPro
   return (
     <div className={`relative inline-block ` + classname}>
       <button
-        className="w-full bg-gray-200 border text-xl font-bold border-gray-300 text-gray-700 px-4 py-5 rounded-lg shadow-sm text-left flex items-center justify-between"
+        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-left font-mono text-base font-medium text-cream transition-colors hover:border-gold-500/40 hover:bg-white/[0.07]"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
       >
         {selected}
         <svg
-          className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : "rotate-0"
+          className={`h-4 w-4 text-gold-400 transition-transform ${isOpen ? "rotate-180" : "rotate-0"
             }`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -34,12 +34,12 @@ const DropDown = ({ selected, setSelected, options, classname }: TimeDropdownPro
         </svg>
       </button>
       {isOpen && (
-        <div className={`absolute mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 `}>
-          {options.map((option,i) => (
+        <div className={`absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-ink-850 shadow-panel backdrop-blur-xl`}>
+          {options.map((option, i) => (
             <button
               key={i}
               onClick={() => handleSelect(option)}
-              className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+              className={`block w-full px-4 py-2.5 text-left font-mono text-sm transition-colors hover:bg-gold-500/10 hover:text-gold-300 focus:bg-gold-500/10 focus:outline-none ${option === selected ? "text-gold-400" : "text-cream/80"}`}
             >
               {option}
             </button>

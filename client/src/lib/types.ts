@@ -97,6 +97,7 @@ export type UserDetailsProps = {
   timer?: number;
   opponentProfilePicture?:string|null|undefined
   opponentRating:number|null
+  active?: boolean
 };
 
 export type TimeDropdownProps = {

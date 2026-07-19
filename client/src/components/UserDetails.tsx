@@ -6,14 +6,16 @@ type UserDetailsProps = {
   color: string;
   opponentTimer?: number;
   myTimer?: number;
-  rating:number | null
+  rating: number | null;
+  active?: boolean;
 };
 
 const UserDetails = ({
   name,
   opponentTimer,
   myTimer,
-  rating
+  rating,
+  active = false,
 }: UserDetailsProps) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -24,7 +26,7 @@ const UserDetails = ({
       .toString()
       .padStart(2, "0");
     const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-    
+
     return `${minutes}:${seconds}`;
   };
 
@@ -32,19 +34,30 @@ const UserDetails = ({
   const displayTimer = myTimer ?? opponentTimer;
 
   return (
-    <div className="flex flex-row items-center justify-between gap-x-5 w-full bg-zinc-700 text-white p-2">
-      <div className="flex items-center gap-x-5">
+    <div className="flex w-full items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5 backdrop-blur-xl">
+      <div className="flex items-center gap-3">
         <img
           src={user?.profilePicture ? user.profilePicture : "/user.png"}
           alt="player avatar"
-          className="w-10 h-10 bg-white rounded-full border border-white"
+          className="h-10 w-10 rounded-xl border border-white/10 bg-ink-800 object-cover"
         />
         <div>
-          <p className="font-serif font-semibold text-xl">
-            {name ? name : user?.name} {" "} ({rating})
+          <p className="text-sm font-semibold text-cream">
+            {name ? name : user?.name}
           </p>
-          <p className="text-sm text-gray-300 font-mono">⏱ {formatTime(displayTimer)}</p>
+          <p className="text-xs font-medium text-gold-400">
+            {rating ?? "—"} <span className="text-cream/30">elo</span>
+          </p>
         </div>
+      </div>
+      <div
+        className={`rounded-xl px-4 py-2 font-mono text-lg font-semibold tabular-nums transition-all ${
+          active
+            ? "bg-gold-500 text-ink-950 shadow-glow-sm"
+            : "border border-white/[0.07] bg-white/[0.03] text-cream/60"
+        }`}
+      >
+        {formatTime(displayTimer)}
       </div>
     </div>
   );

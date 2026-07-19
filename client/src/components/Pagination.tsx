@@ -3,41 +3,40 @@ import React from "react";
 interface PaginationProps {
   totalPages: number;
   currentPage: number;
-  setPage:(arg:number)=>void
+  setPage: (arg: number) => void
 }
+
+const pageButtonBase =
+  "min-w-[2.5rem] rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40";
 
 const Pagination: React.FC<PaginationProps> = ({ totalPages, currentPage, setPage }) => {
   return (
-    <div className="flex items-center justify-center gap-2 mt-6">
-      {/* Previous Button */}
+    <div className="mt-6 flex items-center justify-center gap-2">
       <button
-        className="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+        className={`${pageButtonBase} border border-white/10 bg-white/[0.04] text-cream/80 hover:bg-white/[0.08]`}
         disabled={currentPage === 1}
-        onClick={() => setPage(currentPage-1)}
+        onClick={() => setPage(currentPage - 1)}
       >
         Prev
       </button>
 
-      {/* Page Numbers */}
       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
         <button
           key={page}
           onClick={() => setPage(page)}
-          className={`px-4 py-2 rounded ${
-            currentPage === page
-              ? "bg-white text-black font-semibold"
-              : "bg-gray-700 text-white hover:bg-gray-600"
-          }`}
+          className={`${pageButtonBase} ${currentPage === page
+            ? "bg-gold-500 font-semibold text-ink-950 shadow-glow-sm"
+            : "border border-white/10 bg-white/[0.04] text-cream/80 hover:bg-white/[0.08]"
+            }`}
         >
           {page}
         </button>
       ))}
 
-      {/* Next Button */}
       <button
-        className="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+        className={`${pageButtonBase} border border-white/10 bg-white/[0.04] text-cream/80 hover:bg-white/[0.08]`}
         disabled={currentPage === totalPages}
-        onClick={() => setPage(currentPage+1)}
+        onClick={() => setPage(currentPage + 1)}
       >
         Next
       </button>

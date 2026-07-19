@@ -1,22 +1,21 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CHAT } from "../constants/messages";
 import { IMessage } from "../lib/types";
+import { MessageCircle, SendHorizonal } from "lucide-react";
 
 
 const ChatModal = ({
   setOpen,
   socket,
   messages,
-setMessages
+  setMessages
 }: {
   setOpen: (args: boolean) => void;
   socket: WebSocket | undefined;
-  messages:IMessage[],
-  setMessages:Dispatch<SetStateAction<IMessage[]>>
+  messages: IMessage[],
+  setMessages: Dispatch<SetStateAction<IMessage[]>>
 }) => {
   const [message, setMessage] = useState("");
-
-//   const [messages, setMessages] = useState<IMessage[]>([]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -38,30 +37,38 @@ setMessages
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-zinc-800 w-[90%] max-w-md h-[80vh] rounded-2xl shadow-lg flex flex-col text-white">
-        <div className="p-4 border-b border-zinc-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Game Chat</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70 backdrop-blur-sm">
+      <div className="panel flex h-[80vh] w-[90%] max-w-md animate-fade-up flex-col overflow-hidden !rounded-3xl">
+        <div className="flex items-center justify-between border-b border-white/[0.06] p-5">
+          <h2 className="flex items-center gap-2.5 font-display text-xl text-cream">
+            <MessageCircle className="h-5 w-5 text-gold-400" />
+            Game chat
+          </h2>
           <button
-            className="text-gray-400 hover:text-gray-200 text-xl"
+            className="text-lg text-cream/40 transition-colors hover:text-cream"
             onClick={() => setOpen(false)}
           >
-            ✖
+            ✕
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.map((msg,i) => (
+        <div className="flex-1 space-y-3 overflow-y-auto p-5">
+          {messages.length === 0 && (
+            <p className="pt-8 text-center text-sm text-cream/30">
+              Say hello to your opponent.
+            </p>
+          )}
+          {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex ${
-                msg.sender === "me" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
-                className={`px-4 py-2 rounded-xl max-w-[70%] ${
-                  msg.sender === "me" ? "bg-blue-600" : "bg-zinc-700"
-                }`}
+                className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${msg.sender === "me"
+                  ? "rounded-br-md bg-gold-500 font-medium text-ink-950"
+                  : "rounded-bl-md border border-white/10 bg-white/[0.05] text-cream"
+                  }`}
               >
                 {msg.text}
               </div>
@@ -69,20 +76,20 @@ setMessages
           ))}
         </div>
 
-        <div className="p-4 border-t border-zinc-700 flex gap-2">
+        <div className="flex gap-2 border-t border-white/[0.06] p-4">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 bg-zinc-700 rounded-xl px-4 py-2 outline-none"
+            placeholder="Type a message…"
+            className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-cream placeholder:text-cream/30 outline-none transition-colors focus:border-gold-500/50"
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
           <button
             onClick={handleSend}
-            className="bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-500"
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-b from-gold-400 to-gold-600 text-ink-950 transition-all hover:from-gold-300 hover:to-gold-500 active:scale-95"
           >
-            Send
+            <SendHorizonal className="h-4 w-4" />
           </button>
         </div>
       </div>

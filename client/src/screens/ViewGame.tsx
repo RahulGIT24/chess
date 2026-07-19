@@ -9,7 +9,7 @@ import { useAuth } from "../hooks/useAuth"
 import { Game } from "../lib/types"
 import MoveHistory from "../components/MoveHistory"
 import { useSoundEffects } from "../hooks/useSoundEffects"
-import { Loader2 } from "lucide-react"
+import { Loader2, Pause, Play, RotateCcw } from "lucide-react"
 
 const ViewGame = () => {
     const params = useParams()
@@ -108,77 +108,82 @@ const ViewGame = () => {
         return pauseMoves;
     }, [params, params.id, user])
 
-    if (loading || !game) return <div className="bg-zinc-800 w-full h-screen flex justify-center items-center flex-col gap-y-3">
-        <Loader2 className="animate-spin" size={90} color="green" />
-        <p className="text-3xl font-semibold text-white">Loading Game...</p>
+    if (loading || !game) return <div className="board-grid-bg flex h-screen w-full flex-col items-center justify-center gap-y-5 bg-ink-950">
+        <span className="relative flex h-20 w-20 items-center justify-center">
+            <span className="absolute inset-0 animate-ping rounded-full bg-gold-500/20" />
+            <Loader2 className="h-10 w-10 animate-spin text-gold-400" />
+        </span>
+        <p className="heading-display text-3xl text-cream">Loading game…</p>
     </div>;
 
-    return (
-        <div className="p-4 bg-zinc-900 min-h-screen text-white gap-x-2 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-y-2">
-                {/* Black Player Info (Top) */}
-                <div className="flex items-center justify-between min-w-full p-2 bg-zinc-800 rounded-t-xl">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src={game.blackRef.profilePicture}
-                            alt={game.blackRef.name}
-                            className="w-10 h-10 rounded-full"
-                        />
-                        <div>
-                            <p className="font-semibold">{game.blackRef.name}</p>
-                            <p className="text-sm text-gray-400">Rating: {game.blackRef.rating[0]?.rating ?? "N/A"}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Chess Board */}
-                <ChessBoard
-                    board={board}
-                    chess={chessRef.current}
-                    gamelocked={true}
-                    myColor={color}
+    const playerCard = (ref: typeof game.blackRef, label: string) => (
+        <div className="flex w-full items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+                <img
+                    src={ref.profilePicture}
+                    alt={ref.name}
+                    className="h-10 w-10 rounded-xl border border-white/10 bg-ink-800 object-cover"
                 />
-
-                {/* White Player Info (Bottom) */}
-                <div className="flex items-center justify-between min-w-full p-2 bg-zinc-800 rounded-b-xl">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src={game.whiteRef.profilePicture}
-                            alt={game.whiteRef.name}
-                            className="w-10 h-10 rounded-full"
-                        />
-                        <div>
-                            <p className="font-semibold">{game.whiteRef.name}</p>
-                            <p className="text-sm text-gray-400">Rating: {game.whiteRef.rating[0]?.rating ?? "N/A"}</p>
-                        </div>
-                    </div>
+                <div>
+                    <p className="text-sm font-semibold text-cream">{ref.name}</p>
+                    <p className="text-xs font-medium text-gold-400">
+                        {ref.rating[0]?.rating ?? "N/A"} <span className="text-cream/30">elo</span>
+                    </p>
                 </div>
             </div>
-            <div className="w-[50vw] h-full flex flex-col items-center">
-                <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
-                    <MoveHistory viewGame={true} moveHistory={JSON.parse(game?.moveHistory as string)} gameStarted={true} waiting={false} messages={[]} setMessages={()=>{}}/>
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-cream/60">
+                {label}
+            </span>
+        </div>
+    );
 
-                    <div className="flex items-center gap-2 mt-4">
+    return (
+        <div className="board-grid-bg relative min-h-screen w-full overflow-hidden bg-ink-950 text-cream">
+            {/* Ambient light */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-40 left-1/3 h-96 w-[46rem] -translate-x-1/2 rounded-full bg-gold-500/[0.07] blur-[130px]" />
+            </div>
+
+            <div className="relative z-10 flex min-h-screen w-full flex-wrap items-center justify-center gap-6 px-6 py-6">
+                {/* Board column */}
+                <div className="flex w-[min(76vh,600px)] flex-col gap-y-3">
+                    {playerCard(game.blackRef, "Black")}
+                    <ChessBoard
+                        board={board}
+                        chess={chessRef.current}
+                        gamelocked={true}
+                        myColor={color}
+                    />
+                    {playerCard(game.whiteRef, "White")}
+                </div>
+
+                {/* Side panel */}
+                <div className="panel flex h-[calc(min(76vh,600px)_+_7.5rem)] w-[24rem] max-w-full flex-col p-5">
+                    <MoveHistory viewGame={true} moveHistory={JSON.parse(game?.moveHistory as string)} gameStarted={true} waiting={false} messages={[]} setMessages={() => { }} />
+
+                    <div className="mt-4 flex items-center gap-2 border-t border-white/[0.06] pt-4">
                         <button
                             onClick={isPlaying ? pauseMoves : playMoves}
-                            className="bg-blue-500 px-4 py-2 rounded"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-gold-400 to-gold-600 px-4 py-2.5 text-sm font-semibold text-ink-950 transition-all hover:from-gold-300 hover:to-gold-500 active:scale-[0.98]"
                         >
+                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                             {isPlaying ? "Pause" : "Play"}
                         </button>
                         <button
                             onClick={resetMoves}
-                            className="bg-red-500 px-4 py-2 rounded"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-cream/80 transition-colors hover:border-red-500/40 hover:text-red-300"
                         >
+                            <RotateCcw className="h-4 w-4" />
                             Reset
                         </button>
                         <select
                             value={speed}
                             onChange={(e) => setSpeed(Number(e.target.value))}
-                            className="bg-zinc-800 text-white p-2 rounded"
+                            className="rounded-xl border border-white/10 bg-ink-850 px-3 py-2.5 text-sm text-cream outline-none transition-colors focus:border-gold-500/50"
                         >
-                            <option value={2000}>Slow (2s)</option>
-                            <option value={1000}>Normal (1s)</option>
-                            <option value={500}>Fast (0.5s)</option>
+                            <option value={2000}>Slow</option>
+                            <option value={1000}>Normal</option>
+                            <option value={500}>Fast</option>
                         </select>
                     </div>
                 </div>

@@ -5,6 +5,8 @@ import PromotionModal from "./PromotionModal";
 import { ERROR, MOVE } from "../constants/messages";
 import { ChessBoardProps } from "../lib/types";
 
+const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
 const ChessBoard = ({
   board,
   socket,
@@ -116,53 +118,80 @@ const ChessBoard = ({
     }
   };
 
+  const rotate = myColor === "black" ? "rotate-180" : "";
+
   return (
-    <>
-      <div
-        className={`text-black w-full ${myColor === "black" ? "rotate-180" : ""
-          }`}
-      >
+    <div
+      className={`relative aspect-square w-full select-none overflow-hidden rounded-2xl shadow-board ${rotate}`}
+    >
+      <div className="grid h-full w-full grid-rows-8">
         {board.map((row, i) => {
           return (
-            <div key={i} className={`flex justify-center items-center`}>
+            <div key={i} className="grid grid-cols-8">
               {row.map((square, j) => {
                 const squareRepresentation = (String.fromCharCode(
                   97 + (j % 8)
                 ) +
                   "" +
                   (8 - i)) as Square;
+                const isLight = (i + j) % 2 === 0;
+                const isSelected = from === squareRepresentation;
                 return (
                   <div
                     key={j}
-                    className={`w-[6.4rem]  flex justify-center items-center h-[9vh] ${(i + j) % 2 === 0 ? "bg-zinc-500" : "bg-green-500"
-                      }`}
+                    className={`relative flex cursor-pointer items-center justify-center ${
+                      isLight ? "bg-board-light" : "bg-board-dark"
+                    }`}
                     onClick={() => {
                       handlePieceMove(squareRepresentation);
                     }}
                   >
-                    <p
-                      className={`text-center ${myColor === "black" ? "rotate-180" : ""
-                        }`}
-                    >
+                    {/* Selection highlight */}
+                    {isSelected && (
+                      <span className="pointer-events-none absolute inset-0 bg-gold-500/50 ring-2 ring-inset ring-gold-600" />
+                    )}
+
+                    {/* Coordinates */}
+                    {j === 0 && (
+                      <span
+                        className={`pointer-events-none absolute left-1 top-0.5 font-mono text-[0.6rem] font-semibold ${
+                          isLight ? "text-board-dark" : "text-board-light"
+                        } ${rotate}`}
+                      >
+                        {8 - i}
+                      </span>
+                    )}
+                    {i === 7 && (
+                      <span
+                        className={`pointer-events-none absolute bottom-0.5 right-1 font-mono text-[0.6rem] font-semibold ${
+                          isLight ? "text-board-dark" : "text-board-light"
+                        } ${rotate}`}
+                      >
+                        {FILES[j]}
+                      </span>
+                    )}
+
+                    {square && (
                       <img
-                        src={`/${square?.color === "b"
+                        src={`/${square.color === "b"
                             ? square.type
-                            : square?.type.toUpperCase() + " copy"
+                            : square.type.toUpperCase() + " copy"
                           }.png`}
                         alt=""
+                        className={`relative z-10 h-[82%] w-[82%] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)] ${rotate}`}
                       />
-                    </p>
+                    )}
                   </div>
                 );
               })}
             </div>
           );
         })}
-        {promotion && (
-          <PromotionModal myColor={myColor} handlePromotion={handlePromotion} />
-        )}
       </div>
-    </>
+      {promotion && (
+        <PromotionModal myColor={myColor} handlePromotion={handlePromotion} />
+      )}
+    </div>
   );
 };
 

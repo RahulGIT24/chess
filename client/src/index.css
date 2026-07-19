@@ -1,3 +1,65 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-950 font-sans text-cream antialiased;
+  }
+
+  ::selection {
+    @apply bg-gold-500/40 text-cream;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+}
+
+@layer components {
+  /* Frosted dark surface used for side panels, cards and modals */
+  .panel {
+    @apply rounded-2xl border border-white/[0.07] bg-white/[0.03] shadow-panel backdrop-blur-xl;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium tracking-wide text-cream/70 backdrop-blur-xl;
+  }
+
+  .heading-display {
+    @apply font-display tracking-tight text-cream;
+  }
+
+  /* Faint chessboard grid used as a page backdrop */
+  .board-grid-bg {
+    background-image:
+      linear-gradient(rgba(242, 237, 227, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242, 237, 227, 0.025) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  .gold-text {
+    @apply bg-gradient-to-r from-gold-300 via-gold-400 to-gold-600 bg-clip-text text-transparent;
+  }
+}

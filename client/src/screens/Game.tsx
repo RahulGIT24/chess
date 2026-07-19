@@ -367,15 +367,24 @@ const Game = () => {
 
   if (!socket)
     return (
-      <div className="bg-zinc-800 w-full h-screen flex justify-center items-center flex-col gap-y-3">
-        <Loader2 className="animate-spin" size={90} color="green" />
-        <p className="text-3xl font-semibold text-white">
-          Connecting to Socket.....
+      <div className="board-grid-bg flex h-screen w-full flex-col items-center justify-center gap-y-5 bg-ink-950">
+        <span className="relative flex h-20 w-20 items-center justify-center">
+          <span className="absolute inset-0 animate-ping rounded-full bg-gold-500/20" />
+          <Loader2 className="h-10 w-10 animate-spin text-gold-400" />
+        </span>
+        <p className="heading-display text-3xl text-cream">
+          Connecting to the arena…
         </p>
       </div>
     );
   return (
-    <div className="h-screen w-full bg-zinc-800 text-white">
+    <div className="board-grid-bg relative min-h-screen w-full overflow-hidden bg-ink-950 text-cream">
+      {/* Ambient light */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/3 h-96 w-[46rem] -translate-x-1/2 rounded-full bg-gold-500/[0.07] blur-[130px]" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-gold-600/[0.05] blur-[110px]" />
+      </div>
+
       {reconnecting && <ReconnectingModal />}
       {(draw ||
         (winner && winnerModal) ||
@@ -404,51 +413,46 @@ const Game = () => {
         drawAccept={drawAccept}
         drawReject={drawReject}
       />
-      <div className="justify-center flex">
-        <div className="pt-8 w-full flex justify-center items-center">
-          <div className="flex justify-center items-center w-full h-[95vh]">
-            <div className="flex justify-center items-start flex-col px-12">
-              <div className="flex gap-x-5 h-full">
-                <div className="w-full">
-                  <OpponentDetails
-                    name={opponentName ? opponentName : "Opponent"}
-                    timer={opponentTimer}
-                    opponentProfilePicture={opponentProfilePicture}
-                    opponentRating={opponentRating}
-                  />
-                  <ChessBoard
-                    gamelocked={gameLocked}
-                    // setBoard={setBoard}
-                    chess={chessRef.current}
-                    board={board}
-                    socket={socket}
-                    myColor={myColor.current as string}
-                  />
-                  <UserDetails
-                    color={myColor.current === "white" ? "w" : "b"}
-                    myTimer={myTimer}
-                    rating={myRating}
-                  />
-                </div>
 
-                <div className="w-full h-full flex flex-col items-center">
-                  <div className="w-[20vw] h-[85vh] bg-zinc-900 rounded-xl p-4 flex flex-col justify-between shadow-lg">
-                    <MoveHistory
-                      messages={messages}
-                      setMessages={setMessages}
-                      setWaiting={setWaiting}
-                      socket={socket}
-                      gameStarted={gameStart}
-                      moveHistory={chessRef.current.history() as string[]}
-                      offerDraw={offerDraw}
-                      onResign={onResign}
-                      waiting={waiting}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="relative z-10 flex min-h-screen w-full flex-wrap items-center justify-center gap-6 px-6 py-6">
+        {/* Board column */}
+        <div className="flex w-[min(76vh,600px)] flex-col gap-y-3">
+          <OpponentDetails
+            name={opponentName ? opponentName : "Opponent"}
+            timer={opponentTimer}
+            opponentProfilePicture={opponentProfilePicture}
+            opponentRating={opponentRating}
+            active={gameStart && !gameLocked && !myTurn}
+          />
+          <ChessBoard
+            gamelocked={gameLocked}
+            // setBoard={setBoard}
+            chess={chessRef.current}
+            board={board}
+            socket={socket}
+            myColor={myColor.current as string}
+          />
+          <UserDetails
+            color={myColor.current === "white" ? "w" : "b"}
+            myTimer={myTimer}
+            rating={myRating}
+            active={gameStart && !gameLocked && myTurn}
+          />
+        </div>
+
+        {/* Side panel */}
+        <div className="panel flex h-[calc(min(76vh,600px)_+_7.5rem)] w-[24rem] max-w-full flex-col p-5">
+          <MoveHistory
+            messages={messages}
+            setMessages={setMessages}
+            setWaiting={setWaiting}
+            socket={socket}
+            gameStarted={gameStart}
+            moveHistory={chessRef.current.history() as string[]}
+            offerDraw={offerDraw}
+            onResign={onResign}
+            waiting={waiting}
+          />
         </div>
       </div>
     </div>

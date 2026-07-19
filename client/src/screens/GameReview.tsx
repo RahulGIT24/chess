@@ -38,15 +38,22 @@ export const GameReviewScreen = () => {
     }, [params])
 
     return (
-        <div className="min-h-screen bg-zinc-800 py-8">
+        <div className="board-grid-bg relative min-h-screen bg-ink-950 py-10 text-cream">
+            {/* Ambient light */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-40 left-1/2 h-96 w-[46rem] -translate-x-1/2 rounded-full bg-gold-500/[0.08] blur-[130px]" />
+            </div>
             {
-                loading ? <div className='flex justify-center h-[85vh] flex-col text-2xl text-white gap-y-3 items-center'>
-                    <Loader2 color='green' size={80} className='animate-spin' />
-                    <p>Fetching Game Reviews.........</p>
+                loading ? <div className='relative z-10 flex h-[85vh] flex-col items-center justify-center gap-y-5'>
+                    <span className="relative flex h-20 w-20 items-center justify-center">
+                        <span className="absolute inset-0 animate-ping rounded-full bg-gold-500/20" />
+                        <Loader2 className="h-10 w-10 animate-spin text-gold-400" />
+                    </span>
+                    <p className="heading-display text-3xl">Fetching game review…</p>
                 </div>
                     : (
                         !loading && gameReviewData ? (
-                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                                 <GameHeader game={gameReviewData.game} />
                                 <AccuracyChart
                                     whiteAccuracy={gameReviewData.game.accuracyWhite}
@@ -54,10 +61,12 @@ export const GameReviewScreen = () => {
                                 />
                                 <MoveReviewTable moveReviews={gameReviewData.moveReviews} />
                             </div>
-                        ):
-                        <div className='flex justify-center items-center text-3xl text-green-500'>
-                            <p className='text-white text-2xl text-center'>Game Review is in progress keep refreshing the page....</p>
-                        </div>
+                        ) :
+                            <div className='relative z-10 flex h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center'>
+                                <span className="text-5xl">♟</span>
+                                <p className='heading-display text-3xl'>Review in progress</p>
+                                <p className='text-sm text-cream/50'>Stockfish is still crunching this game — refresh in a moment.</p>
+                            </div>
                     )
             }
         </div>

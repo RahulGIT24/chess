@@ -1,4 +1,4 @@
-import { Flag, Handshake, Loader2, MessageCircle } from "lucide-react";
+import { Flag, Handshake, History, Loader2, LogOut, MessageCircle, Swords } from "lucide-react";
 import { useState } from "react";
 import { RootState } from "../redux/store";
 import { useSelector } from "react-redux";
@@ -50,46 +50,60 @@ const MoveHistory = ({
           setMessages={setMessages}
         />
       )}
-      <div className="flex">
-        <div className="w-full">
-          <p className="text-white font-semibold text-center text-2xl mb-4">
-            {gameStarted ? "Move History" : "Chess Arena"}
+
+      {/* Panel header */}
+      <div className="mb-4 flex items-center justify-between border-b border-white/[0.06] pb-4">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-gold-500/30 bg-gold-500/10 text-lg text-gold-400">
+            ♞
+          </span>
+          <p className="font-display text-xl tracking-wide text-cream">
+            {gameStarted ? "Move sheet" : "Chess Arena"}
           </p>
         </div>
         {gameStarted && (
-          <MessageCircle
+          <button
+            title="Game chat"
             onClick={() => {
               setOpenChatModal(true);
             }}
-          />
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-cream/70 transition-colors hover:border-gold-500/40 hover:text-gold-300"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
         )}
       </div>
-      <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+
+      {/* Move list */}
+      <div className="flex-1 space-y-1 overflow-y-auto pr-1">
         {moveHistory.map((_: unknown, index: number) => {
           if (index % 2 !== 0) return null;
           return (
             <div
               key={index}
-              className="flex justify-between items-center text-white font-medium"
+              className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2 rounded-lg px-2 py-1.5 font-mono text-sm odd:bg-white/[0.02]"
             >
-              <p className="text-gray-400">{index / 2 + 1}.</p>
-              <p className="bg-white text-black px-2 py-1 rounded-md">
+              <span className="text-cream/30">{index / 2 + 1}.</span>
+              <span className="rounded-md bg-white/[0.06] px-2 py-1 text-center font-medium text-cream">
                 {moveHistory[index]}
-              </p>
-              <p className="bg-black text-white px-2 py-1 rounded-md">
+              </span>
+              <span
+                className={`rounded-md px-2 py-1 text-center font-medium ${moveHistory[index + 1] ? "bg-ink-900 text-cream/80" : ""}`}
+              >
                 {moveHistory[index + 1] ?? ""}
-              </p>
+              </span>
             </div>
           );
         })}
       </div>
+
       {!viewGame && (
         <>
           {!waiting && !gameStarted && (
-            <div className="h-full w-full flex justify-center flex-col items-center">
-              <div className="flex w-full flex-col gap-y-2 top-60">
-                <p className=" text-xl font-sans font-semibold">
-                  Select Duration
+            <div className="flex h-full w-full flex-col items-center justify-center">
+              <div className="flex w-full flex-col gap-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cream/40">
+                  Time control
                 </p>
                 <DropDown
                   classname="w-full"
@@ -100,7 +114,7 @@ const MoveHistory = ({
               </div>
               <Button
                 disabled={user?.name && user?.name.length > 3 ? false : true}
-                classname={`mt-4 font-bold w-full py-4 text-4xl ${user?.name && user?.name?.length > 3 && "shadow-green-800 shadow-2xl transform transition-transform hover:-translate-y-1 hover:scale-105 "} `}
+                classname="mt-5 w-full py-4 text-xl font-bold shadow-glow"
                 onClick={() => {
                   socket?.send(
                     JSON.stringify({
@@ -114,57 +128,61 @@ const MoveHistory = ({
                   if (setWaiting) setWaiting(true);
                 }}
               >
+                <Swords className="h-5 w-5" />
                 Play
               </Button>
             </div>
           )}
           {waiting && (
-            <div className="h-full w-full gap-y-4 flex justify-center flex-col items-center">
-              <Loader2 className="animate-spin" size={40} />
-              <p>Searching For Players....</p>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-y-4">
+              <span className="relative flex h-16 w-16 items-center justify-center">
+                <span className="absolute inset-0 animate-ping rounded-full bg-gold-500/20" />
+                <Loader2 className="h-8 w-8 animate-spin text-gold-400" />
+              </span>
+              <p className="text-sm text-cream/60">Searching for players…</p>
             </div>
           )}
           {/* Buttons */}
           {gameStarted && (
-            <div className="mt-4 flex justify-between gap-4">
+            <div className="mt-4 flex justify-between gap-3 border-t border-white/[0.06] pt-4">
               <button
-                className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-gold-500/25 bg-gold-500/10 px-3 py-2.5 text-sm font-medium text-gold-300 transition-colors hover:bg-gold-500/20"
                 onClick={offerDraw}
               >
-                <Handshake size={18} />
-                Offer Draw
+                <Handshake size={16} />
+                Offer draw
               </button>
               <button
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md w-full justify-center transition"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20"
                 onClick={onResign}
               >
-                <Flag size={18} />
+                <Flag size={16} />
                 Resign
               </button>
             </div>
           )}
-          <div className="flex  flex-col gap-y-4">
-            {gameStarted === false && (
-              <Button
+          {gameStarted === false && !waiting && (
+            <div className="mt-4 flex flex-col gap-y-2.5 border-t border-white/[0.06] pt-4">
+              <button
                 onClick={() => {
                   navigate("/mygames");
                 }}
-                classname="w-full"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-cream/80 transition-colors hover:border-gold-500/40 hover:text-gold-300"
               >
-                Game History
-              </Button>
-            )}
-            {gameStarted === false && (
-              <Button
+                <History className="h-4 w-4" />
+                Game history
+              </button>
+              <button
                 onClick={() => {
                   logout();
                 }}
-                classname="w-full bg-transparent border border-green-700"
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-cream/50 transition-colors hover:text-red-300"
               >
-                Log Out
-              </Button>
-            )}
-          </div>
+                <LogOut className="h-4 w-4" />
+                Log out
+              </button>
+            </div>
+          )}
         </>
       )}
     </>

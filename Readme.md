@@ -1,6 +1,30 @@
-# Chess App
+# Chess Arena
 
 A real-time chess application built with a modern full-stack architecture. This app offers smooth gameplay, AI opponent integration, and robust move management with persistent clocks—even if users disconnect or leave the game.
+
+## Screenshots
+
+### Landing
+![Landing hero](demo/screenshots/landing-hero.png)
+![Landing features](demo/screenshots/landing-features.png)
+
+### Sign in
+![Login](demo/screenshots/login.png)
+
+### Play
+| Lobby | Live game |
+| --- | --- |
+| ![Game lobby](demo/screenshots/game-lobby.png) | ![Live game](demo/screenshots/game-live.png) |
+
+![Winner modal](demo/screenshots/game-winner.png)
+
+### Game history & replay
+| Game history | Replay viewer |
+| --- | --- |
+| ![Game history](demo/screenshots/game-history.png) | ![Game replay](demo/screenshots/game-replay.png) |
+
+### Stockfish game review
+![Game review](demo/screenshots/game-review.png)
 
 ## Features
 
